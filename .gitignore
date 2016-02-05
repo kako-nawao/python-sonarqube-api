@@ -1,0 +1,4 @@
+.idea
+.sonar
+
+__pycache__/
