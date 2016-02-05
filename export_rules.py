@@ -59,56 +59,55 @@ def export_rules(options):
     html_fn = os.path.expanduser(os.path.join(options.output, 'rules.html'))
 
     # Open csv and html files
-    with open(csv_fn, 'w') as csv_f:
-        with open(html_fn, 'w') as html_f:
-            # Init csv writer and write header
-            csv_w = csv.writer(csv_f)
-            csv_w.writerow(['language', 'key', 'name', 'debt', 'severity'])
+    with open(csv_fn, 'w') as csv_f, open(html_fn, 'w') as html_f:
+        # Init csv writer and write header
+        csv_w = csv.writer(csv_f)
+        csv_w.writerow(['language', 'key', 'name', 'debt', 'severity'])
 
-            # Start html file
-            html_f.write('<html><body>')
+        # Start html file
+        html_f.write('<html><body>')
 
-            # Get the rules generator
-            rules = h.get_rules(options.active,
-                                options.profile,
-                                options.languages)
-            for rule in rules:
-                # Write CSV row
-                csv_w.writerow([
-                    rule['langName'],
-                    rule['key'],
-                    rule['name'],
-                    # Note: debt can be in diff. fields depending on type
+        # Get the rules generator
+        rules = h.get_rules(options.active,
+                            options.profile,
+                            options.languages)
+        for rule in rules:
+            # Write CSV row
+            csv_w.writerow([
+                rule['langName'],
+                rule['key'],
+                rule['name'],
+                # Note: debt can be in diff. fields depending on type
+                rule.get('debtRemFnOffset',
+                         rule.get('debtRemFnCoeff', '-')),
+                rule['severity']
+            ])
+
+            # Render parameters sublist
+            params_htmls = []
+            if rule['params']:
+                for param in rule['params']:
+                    params_htmls.append('<li>{}: {}</li>'.format(
+                        param.get('key', '-'),
+                        param.get('defaultValue', '-')
+                    ))
+            else:
+                params_htmls.append('-')
+
+            # Write html section
+            html_f.write(
+                HTML_RULE_TEMPLATE.format(
+                    rule['key'], rule['name'], rule['langName'],
+                    rule['key'], rule['severity'],
                     rule.get('debtRemFnOffset',
                              rule.get('debtRemFnCoeff', '-')),
-                    rule['severity']
-                ])
-
-                # Render parameters sublist
-                params_htmls = []
-                if rule['params']:
-                    for param in rule['params']:
-                        params_htmls.append('<li>{}: {}</li>'.format(
-                            param.get('key', '-'),
-                            param.get('defaultValue', '-')
-                        ))
-                else:
-                    params_htmls.append('-')
-
-                # Write html section
-                html_f.write(
-                    HTML_RULE_TEMPLATE.format(
-                        rule['key'], rule['name'], rule['langName'],
-                        rule['key'], rule['severity'],
-                        rule.get('debtRemFnOffset',
-                                 rule.get('debtRemFnCoeff', '-')),
-                        ''.join(params_htmls),
-                        rule.get('htmlDesc', '-')
-                    )
+                    ''.join(params_htmls),
+                    rule.get('htmlDesc', '-')
                 )
+            )
 
-            # Close html body and document
-            html_f.write('</body></html>')
+        # Close html body and document
+        html_f.write('</body></html>')
 
 
 if __name__ == '__main__':
