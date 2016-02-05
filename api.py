@@ -38,20 +38,20 @@ class SonarAPIHandler(object):
     @property
     def resources_url(self):
         """
-        Full url to the service endpoint.
+        URL to the resources endpoint.
         """
         return '{}:{}{}'.format(self._host, self._port, self.RESOURCES_ENDPOINT)
 
     @property
     def rules_url(self):
         """
-        Full url to the service endpoint.
+        URL to the rules endpoint.
         """
         return '{}:{}{}'.format(self._host, self._port, self.RULES_ENDPOINT)
 
     def __init__(self, host=None, port=None, user=None, password=None):
         """
-        Set given host and auth information if user and password were given.
+        Set connection and auth information (if user+password were provided).
         """
         self._host = host or self.DEFAULT_HOST
         self._port = port or self.DEFAULT_PORT
@@ -64,8 +64,7 @@ class SonarAPIHandler(object):
         Make the call to the service with the given queryset and whatever params
         were set initially (auth).
         """
-        return requests.get(url, data=queryset or {},
-                            **self._call_params)
+        return requests.get(url, data=queryset or {}, **self._call_params)
 
     def get_rules(self, active_only=False, profile=None, languages=None):
         """
@@ -83,7 +82,7 @@ class SonarAPIHandler(object):
             qs['activation'] = 'true'
 
         # Add language param
-        # # Note: accept comma-separated string or list-like iterable)
+        # Note: we handle comma-separated string or list-like iterable)
         if languages:
             if not isinstance(languages, str):
                 languages = ','.join(languages).lower()
