@@ -64,7 +64,10 @@ class SonarAPIHandler(object):
         Make the call to the service with the given queryset and whatever params
         were set initially (auth).
         """
-        return requests.get(url, data=queryset or {}, **self._call_params)
+        res = requests.get(url, data=queryset or {}, **self._call_params)
+        if res.status_code != 200:
+            raise Exception(res.reason)
+        return res
 
     def get_rules(self, active_only=False, profile=None, languages=None):
         """
