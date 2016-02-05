@@ -85,8 +85,8 @@ class SonarAPIHandler(object):
         # Note: we handle comma-separated string or list-like iterable)
         if languages:
             if not isinstance(languages, str):
-                languages = ','.join(languages).lower()
-            qs['languages'] = languages
+                languages = ','.join(languages)
+            qs['languages'] = languages.lower()
 
         # Page counters
         page_num = 1
