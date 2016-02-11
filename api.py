@@ -31,14 +31,15 @@ class SonarAPIHandler(object):
     )
 
     # General metrics with their titles (not provided by api)
+    # Note: none of the new_* metrics are returned by the API
     GENERAL_METRICS = (
         # SQUALE metrics
         'sqale_index', 'sqale_debt_ratio',
 
         # Violations
-        'blocker_violations', 'critical_violations', 'major_violations',
-        'minor_violations',
-        'new_blocker_violations', 'new_critical_violations',
+        'violations', 'blocker_violations', 'critical_violations',
+        'major_violations', 'minor_violations',
+        'new_violations', 'new_blocker_violations', 'new_critical_violations',
         'new_major_violations', 'new_minor_violations',
 
         # Coverage metrics
@@ -185,7 +186,8 @@ class SonarAPIHandler(object):
         the given (or default) metrics.
         """
         # Build parameters
-        params = {'metrics': ','.join(metrics or self.GENERAL_METRICS)}
+        params = {'metrics': ','.join(metrics or self.GENERAL_METRICS),
+                  'includetrends': 'true'}
         if resource:
             params['resource'] = resource
 
