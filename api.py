@@ -16,8 +16,10 @@ class SonarAPIHandler(object):
     DEFAULT_PORT = 9000
 
     # Endpoint for resources and rules
+    METRICS_ENDPOINT = '/api/metrics/search'
     RESOURCES_ENDPOINT = '/api/resources'
     RULES_ENDPOINT = '/api/rules/search'
+    TIMEMACHINE_ENDPOINT = '/api/timemachine'
 
     # Debt data params (characteristics and metric)
     DEBT_CHARACTERISTICS = (
@@ -30,10 +32,28 @@ class SonarAPIHandler(object):
 
     # General metrics with their titles (not provided by api)
     GENERAL_METRICS = (
-        'comment_lines_density', 'duplicated_blocks', 'violations',
-        'violations_density', 'alert_status', 'sqale_index',
-        'sqale_debt_ratio', 'coverage'
+        # SQUALE metrics
+        'sqale_index', 'sqale_debt_ratio',
+
+        # Violations
+        'blocker_violations', 'critical_violations', 'major_violations',
+        'minor_violations',
+        'new_blocker_violations', 'new_critical_violations',
+        'new_major_violations', 'new_minor_violations',
+
+        # Coverage metrics
+        'lines_to_cover', 'conditions_to_cover', 'uncovered_lines',
+        'uncovered_conditions', 'coverage'
+        'new_lines_to_cover', 'new_conditions_to_cover', 'new_uncovered_lines',
+        'new_uncovered_conditions', 'new_coverage'
     )
+
+    @property
+    def metrics_url(self):
+        """
+        URL to the metrics endpoint.
+        """
+        return '{}:{}{}'.format(self._host, self._port, self.METRICS_ENDPOINT)
 
     @property
     def resources_url(self):
@@ -59,7 +79,7 @@ class SonarAPIHandler(object):
         if user and password:
             self._call_params['auth'] = HTTPBasicAuth(user, password)
 
-    def _get_response(self, url, queryset):
+    def _get_response(self, url, queryset=None):
         """
         Make the call to the service with the given queryset and whatever params
         were set initially (auth).
@@ -68,6 +88,34 @@ class SonarAPIHandler(object):
         if res.status_code != 200:
             raise Exception(res.reason)
         return res
+
+    def get_metrics(self, key=None):
+        """
+        Get a generator with the specified (or all if no key is given)
+        metric data.
+        """
+        # Queryset (for paging only)
+        qs = {}
+
+        # Page counters
+        page_num = 1
+        page_size = 1
+        n_metrics = 2
+
+        # Cycle through rules
+        while page_num * page_size < n_metrics:
+            # Update paging information for calculation
+            res = self._get_response(self.metrics_url, qs).json()
+            page_num = res['p']
+            page_size = res['ps']
+            n_metrics = res['total']
+
+            # Update page number (next) in queryset
+            qs['p'] = page_num + 1
+
+            # Yield rules
+            for metric in res['metrics']:
+                yield metric
 
     def get_rules(self, active_only=False, profile=None, languages=None):
         """
