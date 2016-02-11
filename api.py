@@ -198,13 +198,13 @@ class SonarAPIHandler(object):
         for prj in res:
             yield prj
 
-    def get_resources_full_data(self, resource=None):
+    def get_resources_full_data(self, resource=None, metrics=None):
         """
         Get a generator of resources (or a single resource) data including
         the given all merged metrics and debt data.
         """
         # First make a dict with all resources
-        prjs = {prj['key']: prj for prj in self.get_resources_metrics(resource=resource)}
+        prjs = {prj['key']: prj for prj in self.get_resources_metrics(resource=resource, metrics=metrics)}
 
         # Now merge the debt data using the key
         for prj in self.get_resources_debt(resource=resource):
