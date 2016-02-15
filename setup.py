@@ -58,7 +58,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'export-sonarqube-rules=sonarqube_api.export_rules:run',
+            'export-sonarqube-rules=sonarqube_api.cmd.export_rules:run',
         ],
     },
 )
