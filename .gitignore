@@ -2,3 +2,5 @@
 .sonar
 
 __pycache__/
+*.pyc
+sonarqube_api.egg-info/

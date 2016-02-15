@@ -96,17 +96,14 @@ def run():
             else:
                 params_htmls.append(u'-')
 
-            # Write html section
-            html_f.write(
-                HTML_RULE_TEMPLATE.format(
-                    rule['key'], rule['name'], rule['langName'],
-                    rule['key'], rule['severity'],
-                    rule.get('debtRemFnOffset',
-                             rule.get('debtRemFnCoeff', u'-')),
-                    u''.join(params_htmls),
-                    rule.get('htmlDesc', u'-')
-                )
+            values = (
+                rule['key'], rule['name'], rule['langName'],
+                rule['key'], rule['severity'],
+                rule.get('debtRemFnOffset', rule.get('debtRemFnCoeff', u'-')),
+                u''.join(params_htmls), rule.get('htmlDesc', u'-')
             )
+            html_f.write(HTML_RULE_TEMPLATE.format(*values).encode('utf-8'))
+
 
         # Close html body and document
         html_f.write(u'</body></html>')
