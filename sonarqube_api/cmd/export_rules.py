@@ -5,15 +5,15 @@ import argparse
 import csv
 import os
 
-from sonarqube_api.api import SonarAPIHandler
+from ..api import SonarAPIHandler
 
 
 
 # HTML rule section template
-HTML_RULE_TEMPLATE = '<h1 id="{}">{}</h1><dl><dt>Language</dt><dd>{}</dd>' \
-                     '<dt>Key</dt><dd>{}</dd><dt>Severity</dt><dd>{}</dd>' \
-                     '<dt>Debt</dt><dd>{}</dd><dt>Parameters</dt><dd>{}</dd>' \
-                     '</dl><div>{}</div><hr>'
+HTML_RULE_TEMPLATE = u'<h1 id="{}">{}</h1><dl><dt>Language</dt><dd>{}</dd>'\
+                     u'<dt>Key</dt><dd>{}</dd><dt>Severity</dt><dd>{}</dd>'\
+                     u'<dt>Debt</dt><dd>{}</dd><dt>Parameters</dt><dd>{}</dd>'\
+                     u'</dl><div>{}</div><hr>'
 
 
 parser = argparse.ArgumentParser(description='Export rules from a SonarQube server')
@@ -67,7 +67,7 @@ def run():
         csv_w.writerow(['language', 'key', 'name', 'debt', 'severity'])
 
         # Start html file
-        html_f.write('<html><body>')
+        html_f.write(u'<html><body>')
 
         # Get the rules generator
         rules = h.get_rules(options.active,
@@ -81,7 +81,7 @@ def run():
                 rule['name'],
                 # Note: debt can be in diff. fields depending on type
                 rule.get('debtRemFnOffset',
-                         rule.get('debtRemFnCoeff', '-')),
+                         rule.get('debtRemFnCoeff', u'-')),
                 rule['severity']
             ])
 
@@ -89,12 +89,12 @@ def run():
             params_htmls = []
             if rule['params']:
                 for param in rule['params']:
-                    params_htmls.append('<li>{}: {}</li>'.format(
-                        param.get('key', '-'),
-                        param.get('defaultValue', '-')
+                    params_htmls.append(u'<li>{}: {}</li>'.format(
+                        param.get('key', u'-'),
+                        param.get('defaultValue', u'-')
                     ))
             else:
-                params_htmls.append('-')
+                params_htmls.append(u'-')
 
             # Write html section
             html_f.write(
@@ -102,14 +102,14 @@ def run():
                     rule['key'], rule['name'], rule['langName'],
                     rule['key'], rule['severity'],
                     rule.get('debtRemFnOffset',
-                             rule.get('debtRemFnCoeff', '-')),
-                    ''.join(params_htmls),
-                    rule.get('htmlDesc', '-')
+                             rule.get('debtRemFnCoeff', u'-')),
+                    u''.join(params_htmls),
+                    rule.get('htmlDesc', u'-')
                 )
             )
 
         # Close html body and document
-        html_f.write('</body></html>')
+        html_f.write(u'</body></html>')
 
 
 if __name__ == '__main__':
