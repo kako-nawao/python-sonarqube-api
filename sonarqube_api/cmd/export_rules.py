@@ -48,11 +48,12 @@ parser.add_argument('--languages', dest='languages', type=str,
                     help='Language to filter the rules to export')
 
 
-def export_rules(options):
+def run():
     """
     Export a SonarQube's rules to a CSV and an HTML file, using a
     SonarAPIHandler connected to the given host.
     """
+    options = parser.parse_args()
     h = SonarAPIHandler(options.host, options.port, options.user, options.password)
 
     # Determine output csv and html file names
@@ -112,6 +113,4 @@ def export_rules(options):
 
 
 if __name__ == '__main__':
-    # Executed (not imported), run export
-    options = parser.parse_args()
-    export_rules(options)
+    run()
