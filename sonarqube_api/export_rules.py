@@ -5,7 +5,8 @@ import argparse
 import csv
 import os
 
-from api import SonarAPIHandler
+from sonarqube_api.api import SonarAPIHandler
+
 
 
 # HTML rule section template
@@ -15,7 +16,7 @@ HTML_RULE_TEMPLATE = '<h1 id="{}">{}</h1><dl><dt>Language</dt><dd>{}</dd>' \
                      '</dl><div>{}</div><hr>'
 
 
-parser = argparse.ArgumentParser(description='Export ')
+parser = argparse.ArgumentParser(description='Export rules from a SonarQube server')
 
 # Connection arguments
 parser.add_argument('--host', dest='host', type=str,
