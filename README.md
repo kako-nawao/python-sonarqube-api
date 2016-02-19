@@ -19,12 +19,17 @@ Example use:
     from sonarqube_api import SonarAPIHandler
 
     h = SonarAPIHandler(user='admin', password='admin')
-    for metric in h.get_resources_full_data(metrics=['coverage', 'violations']):
+    for project in h.get_resources_full_data(metrics=['coverage', 'violations']):
         # do something with metrics...
 
 Since the actual response data from SonarQube server is usually paged, all
 methods return generators to optimize memory as well retrieval performance of
 the first items.
+
+You can also specify a single resources to fetch, but keep in mind that the resource methods
+return generators, so you still need to *get the next object*:
+
+    proj = h.get_resources_full_data(resource='some:example').next()
 
 
 ## Supported Methods

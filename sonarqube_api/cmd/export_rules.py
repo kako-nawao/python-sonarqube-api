@@ -5,7 +5,7 @@ import argparse
 import csv
 import os
 
-from ..api import SonarAPIHandler
+from sonarqube_api.api import SonarAPIHandler
 
 
 
