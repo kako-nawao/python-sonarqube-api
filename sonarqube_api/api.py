@@ -31,7 +31,6 @@ class SonarAPIHandler(object):
     )
 
     # General metrics with their titles (not provided by api)
-    # Note: none of the new_* metrics are returned by the API
     GENERAL_METRICS = (
         # SQUALE metrics
         'sqale_index', 'sqale_debt_ratio',
@@ -39,14 +38,22 @@ class SonarAPIHandler(object):
         # Violations
         'violations', 'blocker_violations', 'critical_violations',
         'major_violations', 'minor_violations',
+
+        # Coverage
+        'lines_to_cover', 'conditions_to_cover', 'uncovered_lines',
+        'uncovered_conditions', 'coverage'
+    )
+
+    # Differential metrics with their titles (not provided by api)
+    NEW_METRICS = (
+        # Violations
         'new_violations', 'new_blocker_violations', 'new_critical_violations',
         'new_major_violations', 'new_minor_violations',
 
-        # Coverage metrics
-        'lines_to_cover', 'conditions_to_cover', 'uncovered_lines',
-        'uncovered_conditions', 'coverage'
+        # Coverage
         'new_lines_to_cover', 'new_conditions_to_cover', 'new_uncovered_lines',
         'new_uncovered_conditions', 'new_coverage'
+
     )
 
     @property
@@ -180,16 +187,18 @@ class SonarAPIHandler(object):
         for prj in res:
             yield prj
 
-    def get_resources_metrics(self, resource=None, metrics=None):
+    def get_resources_metrics(self, resource=None, metrics=None, include_trends=False):
         """
         Get a generator of resources (or a single resource) data including
         the given (or default) metrics.
         """
         # Build parameters
-        params = {'metrics': ','.join(metrics or self.GENERAL_METRICS),
-                  'includetrends': 'true'}
+        params = {'metrics': ','.join(metrics or self.GENERAL_METRICS)}
         if resource:
             params['resource'] = resource
+        if include_trends:
+            params['includetrends'] = 'true'
+            params['metrics'] = ','.join([params['metrics']] + list(self.NEW_METRICS))
 
         # Make the call
         res = self._get_response(self.resources_url, params).json()
@@ -198,13 +207,15 @@ class SonarAPIHandler(object):
         for prj in res:
             yield prj
 
-    def get_resources_full_data(self, resource=None, metrics=None):
+    def get_resources_full_data(self, resource=None, metrics=None, include_trends=False):
         """
         Get a generator of resources (or a single resource) data including
         the given all merged metrics and debt data.
         """
         # First make a dict with all resources
-        prjs = {prj['key']: prj for prj in self.get_resources_metrics(resource=resource, metrics=metrics)}
+        prjs = {prj['key']: prj for prj in
+                self.get_resources_metrics(resource=resource, metrics=metrics,
+                                           include_trends=include_trends)}
 
         # Now merge the debt data using the key
         for prj in self.get_resources_debt(resource=resource):
