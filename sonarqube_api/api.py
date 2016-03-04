@@ -7,6 +7,14 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 
+class AuthError(Exception):
+    pass
+
+
+class ValidationError(ValueError):
+    pass
+
+
 class SonarAPIHandler(object):
     """
     Adapter for SonarQube's web service API.
@@ -16,10 +24,10 @@ class SonarAPIHandler(object):
     DEFAULT_PORT = 9000
 
     # Endpoint for resources and rules
-    METRICS_ENDPOINT = '/api/metrics/search'
+    METRICS_LIST_ENDPOINT = '/api/metrics/search'
     RESOURCES_ENDPOINT = '/api/resources'
-    RULES_ENDPOINT = '/api/rules/search'
-    TIMEMACHINE_ENDPOINT = '/api/timemachine'
+    RULES_LIST_ENDPOINT = '/api/rules/search'
+    RULES_CREATE_ENDPOINT = '/api/rules/create'
 
     # Debt data params (characteristics and metric)
     DEBT_CHARACTERISTICS = (
@@ -56,27 +64,6 @@ class SonarAPIHandler(object):
 
     )
 
-    @property
-    def metrics_url(self):
-        """
-        URL to the metrics endpoint.
-        """
-        return '{}:{}{}'.format(self._host, self._port, self.METRICS_ENDPOINT)
-
-    @property
-    def resources_url(self):
-        """
-        URL to the resources endpoint.
-        """
-        return '{}:{}{}'.format(self._host, self._port, self.RESOURCES_ENDPOINT)
-
-    @property
-    def rules_url(self):
-        """
-        URL to the rules endpoint.
-        """
-        return '{}:{}{}'.format(self._host, self._port, self.RULES_ENDPOINT)
-
     def __init__(self, host=None, port=None, user=None, password=None):
         """
         Set connection and auth information (if user+password were provided).
@@ -87,23 +74,71 @@ class SonarAPIHandler(object):
         if user and password:
             self._call_params['auth'] = HTTPBasicAuth(user, password)
 
-    def _get_response(self, url, queryset=None):
+    def _get_url(self, endpoint):
         """
-        Make the call to the service with the given queryset and whatever params
-        were set initially (auth).
+        Return the complete url including host and port for a given endpoint.
+
+        :param endpoint: service endpoint as str
+        :return: complete url (including host and port) as str
         """
-        res = requests.get(url, data=queryset or {}, **self._call_params)
-        if res.status_code != 200:
-            raise Exception(res.reason)
+        return '{}:{}{}'.format(self._host, self._port, endpoint)
+
+    def _make_call(self, method, url, data=None):
+        """
+        Make the call to the service with the given method, queryset and body,
+        and whatever params were set initially (auth).
+
+        :param method: http method (get, post, put, patch) as str
+        :param url: target url to make request
+        :param data: queryset or body as dict
+        :return: response
+        """
+        # Get method and make the call
+        call = getattr(requests, method.lower())
+        res = call(url, data=data or {}, **self._call_params)
+
+        # Return res if res < 400, otherwise raise adequate exception
+        if res.status_code < 400:
+            return res
+
+        elif res.status_code in (401, 403):
+            raise AuthError(res.reason)
+
+        elif res.status_code == 400:
+            msg = ', '.join(e['msg'] for e in res.json()['errors'])
+            raise ValidationError(msg)
+
+    def create_rule(self, key, name, description, message, xpath, severity,
+                    status, template_key):
+        """
+        Create a a custom rule in the connected server.
+
+        :param rule_data: dictionary with rule data to create
+        :return: True if rule was created, False if it already existed
+        """
+        url = self._get_url(self.RULES_CREATE_ENDPOINT)
+        data = {
+            'custom_key': key,
+            'name': name,
+            'markdown_description': description,
+            'params': 'message={};xpathQuery={}'.format(message, xpath),
+            'severity': severity.upper(),
+            'status': status.upper(),
+            'template_key': template_key
+        }
+        res = self._make_call('post', url, data)
         return res
 
-    def get_metrics(self, key=None):
+    def get_metrics(self, fields=None):
         """
-        Get a generator with the specified (or all if no key is given)
-        metric data.
+        Get a generator with the specified metric data (or all if no key is given).
         """
-        # Queryset (for paging only)
+        # Build queryset including fields if required
         qs = {}
+        if fields:
+            if not isinstance(fields, str):
+                fields = ','.join(fields)
+            qs['f'] = fields.lower()
 
         # Page counters
         page_num = 1
@@ -113,7 +148,8 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_metrics:
             # Update paging information for calculation
-            res = self._get_response(self.metrics_url, qs).json()
+            url = self._get_url(self.METRICS_LIST_ENDPOINT)
+            res = self._make_call('get', url, qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_metrics = res['total']
@@ -125,7 +161,8 @@ class SonarAPIHandler(object):
             for metric in res['metrics']:
                 yield metric
 
-    def get_rules(self, active_only=False, profile=None, languages=None):
+    def get_rules(self, active_only=False, profile=None, languages=None,
+                  custom_only=False):
         """
         Get a generator of rules for the given active state, profile or
         languages (or all if none is given). Only READY, non-template rules
@@ -147,6 +184,10 @@ class SonarAPIHandler(object):
                 languages = ','.join(languages)
             qs['languages'] = languages.lower()
 
+        # Filter by tech debt for custom only (custom have no tech debt)
+        if custom_only:
+            qs['has_debt_characteristic'] = 'false'
+
         # Page counters
         page_num = 1
         page_size = 1
@@ -155,7 +196,8 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_rules:
             # Update paging information for calculation
-            res = self._get_response(self.rules_url, qs).json()
+            url = self._get_url(self.RULES_LIST_ENDPOINT)
+            res = self._make_call('get', url, qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_rules = res['total']
@@ -181,7 +223,8 @@ class SonarAPIHandler(object):
             params['resource'] = resource
 
         # Get the results
-        res = self._get_response(self.resources_url, params).json()
+        url = self._get_url(self.RESOURCES_ENDPOINT)
+        res = self._make_call('get', url, params).json()
 
         # Yield results
         for prj in res:
@@ -201,7 +244,8 @@ class SonarAPIHandler(object):
             params['metrics'] = ','.join([params['metrics']] + list(self.NEW_METRICS))
 
         # Make the call
-        res = self._get_response(self.resources_url, params).json()
+        url = self._get_url(self.RESOURCES_ENDPOINT)
+        res = self._make_call('get', url, params).json()
 
         # Iterate and yield results
         for prj in res:
