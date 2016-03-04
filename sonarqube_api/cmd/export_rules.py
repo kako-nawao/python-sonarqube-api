@@ -4,9 +4,9 @@ Utility to export the rules on a SonarQube server.
 import argparse
 import csv
 import os
+import sys
 
 from sonarqube_api.api import SonarAPIHandler
-
 
 
 # HTML rule section template
@@ -73,37 +73,40 @@ def run():
         rules = h.get_rules(options.active,
                             options.profile,
                             options.languages)
-        for rule in rules:
-            # Write CSV row
-            csv_w.writerow([
-                rule['langName'],
-                rule['key'],
-                rule['name'],
-                # Note: debt can be in diff. fields depending on type
-                rule.get('debtRemFnOffset',
-                         rule.get('debtRemFnCoeff', u'-')),
-                rule['severity']
-            ])
+        try:
+            for rule in rules:
+                # Write CSV row
+                csv_w.writerow([
+                    rule['langName'],
+                    rule['key'],
+                    rule['name'],
+                    # Note: debt can be in diff. fields depending on type
+                    rule.get('debtRemFnOffset',
+                             rule.get('debtRemFnCoeff', u'-')),
+                    rule['severity']
+                ])
 
-            # Render parameters sublist
-            params_htmls = []
-            if rule['params']:
-                for param in rule['params']:
-                    params_htmls.append(u'<li>{}: {}</li>'.format(
-                        param.get('key', u'-'),
-                        param.get('defaultValue', u'-')
-                    ))
-            else:
-                params_htmls.append(u'-')
+                # Render parameters sublist
+                params_htmls = []
+                if rule['params']:
+                    for param in rule['params']:
+                        params_htmls.append(u'<li>{}: {}</li>'.format(
+                            param.get('key', u'-'),
+                            param.get('defaultValue', u'-')
+                        ))
+                else:
+                    params_htmls.append(u'-')
 
-            values = (
-                rule['key'], rule['name'], rule['langName'],
-                rule['key'], rule['severity'],
-                rule.get('debtRemFnOffset', rule.get('debtRemFnCoeff', u'-')),
-                u''.join(params_htmls), rule.get('htmlDesc', u'-')
-            )
-            html_f.write(HTML_RULE_TEMPLATE.format(*values).encode('utf-8'))
+                values = (
+                    rule['key'], rule['name'], rule['langName'],
+                    rule['key'], rule['severity'],
+                    rule.get('debtRemFnOffset', rule.get('debtRemFnCoeff', u'-')),
+                    u''.join(params_htmls), rule.get('htmlDesc', u'-')
+                )
+                html_f.write(HTML_RULE_TEMPLATE.format(*values).encode('utf-8'))
 
+        except Exception as e:
+            sys.stderr.write("Error: {}\n".format(e.message))
 
         # Close html body and document
         html_f.write(u'</body></html>')
