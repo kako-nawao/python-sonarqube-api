@@ -57,8 +57,8 @@ or migrate rules in SonarQube servers.
 
 ### Export Rules
 
-The `export-sonarqube-rules` reads the rules in a SonarQube server and creates
-two files with their data. One is a *csv* with a snapshot of the rule
+The command `export-sonarqube-rules` reads the rules in a SonarQube server and
+creates two files with their data. One is a *csv* with a snapshot of the rule
 (including key, name, status, etc) and the other one is an *html* with all
 the information, including description and examples.
 
@@ -81,10 +81,10 @@ For the complete set of export options run:
 
 ### Migrate Rules
 
-The `migrate-sonarqube-rules` reads the custom rules in a SonarQube server (the
-source) and tries to recreate them in another SonarQube server (the target).
-Since by default it uses *localhost* for both source and target, you'll need to
-specify at least one of the hosts.
+The command `migrate-sonarqube-rules` reads the custom rules in a SonarQube
+server (the source) and tries to recreate them in another SonarQube server
+(the target). Since by default it uses *localhost* for both source and target,
+you'll need to specify at least one of the hosts.
 
 For example, to copy all custom rules defined in server *sonar.from.com* to
 the server in *sonar.to.com*, you would execute:
@@ -93,7 +93,6 @@ the server in *sonar.to.com*, you would execute:
 
 As with the previous command, you can specify all the connection options
 (`--source-port`, `--target-port`, `--source-user`, etc).
-
 
 For the complete set of export options run:
 
