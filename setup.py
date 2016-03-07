@@ -32,12 +32,14 @@ setup(
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Environment :: Console',
-        'Intended Audience :: End Users/Desktop',
+        'Development Status :: 4 - Beta',
+        'Environment :: Plugins',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
-        'Operating System :: Unix',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
+        'Topic :: Software Development'
     ],
 
     keywords='api sonar sonarqube',
@@ -45,7 +47,7 @@ setup(
 
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'requests==2.9.1',
+        'requests',
     ],
     extras_require={},
     package_data={},
