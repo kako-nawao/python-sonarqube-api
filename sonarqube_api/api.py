@@ -2,9 +2,7 @@
 This module contains the SonarAPIHandler, used for communicating with the
 SonarQube server web service API.
 """
-
 import requests
-from requests.auth import HTTPBasicAuth
 
 
 class AuthError(Exception):
@@ -66,13 +64,14 @@ class SonarAPIHandler(object):
 
     def __init__(self, host=None, port=None, user=None, password=None):
         """
-        Set connection and auth information (if user+password were provided).
+        Set connection info and session, including auth (if user+password
+        were provided).
         """
         self._host = host or self.DEFAULT_HOST
         self._port = port or self.DEFAULT_PORT
-        self._call_params = {}
+        self._session = requests.Session()
         if user and password:
-            self._call_params['auth'] = HTTPBasicAuth(user, password)
+            self._session.auth = user, password
 
     def _get_url(self, endpoint):
         """
@@ -94,8 +93,8 @@ class SonarAPIHandler(object):
         :return: response
         """
         # Get method and make the call
-        call = getattr(requests, method.lower())
-        res = call(url, data=data or {}, **self._call_params)
+        call = getattr(self._session, method.lower())
+        res = call(url, data=data or {})
 
         # Return res if res < 400, otherwise raise adequate exception
         if res.status_code < 400:
