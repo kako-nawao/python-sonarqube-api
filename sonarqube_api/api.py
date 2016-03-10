@@ -4,13 +4,7 @@ SonarQube server web service API.
 """
 import requests
 
-
-class AuthError(Exception):
-    pass
-
-
-class ValidationError(ValueError):
-    pass
+from .exceptions import AuthError, ValidationError
 
 
 class SonarAPIHandler(object):
@@ -22,6 +16,7 @@ class SonarAPIHandler(object):
     DEFAULT_PORT = 9000
 
     # Endpoint for resources and rules
+    AUTH_VALIDATION_ENDPOINT = '/api/authentication/validate'
     METRICS_LIST_ENDPOINT = '/api/metrics/search'
     RESOURCES_ENDPOINT = '/api/resources'
     RULES_LIST_ENDPOINT = '/api/rules/search'
@@ -145,9 +140,9 @@ class SonarAPIHandler(object):
         n_metrics = 2
 
         # Cycle through rules
+        url = self._get_url(self.METRICS_LIST_ENDPOINT)
         while page_num * page_size < n_metrics:
             # Update paging information for calculation
-            url = self._get_url(self.METRICS_LIST_ENDPOINT)
             res = self._make_call('get', url, qs).json()
             page_num = res['p']
             page_size = res['ps']
@@ -267,3 +262,14 @@ class SonarAPIHandler(object):
         # Return only values (list-like object)
         for prj in prjs.values():
             yield prj
+
+    def validate_authentication(self):
+        """
+        Validate the authentication credentials passed on client initialization.
+        This can be used to test the connection, since the API always returns 200.
+
+        :return: True if valid
+        """
+        url = self._get_url(self.AUTH_VALIDATION_ENDPOINT)
+        res = self._make_call('get', url).json()
+        return res.get('valid', False)
