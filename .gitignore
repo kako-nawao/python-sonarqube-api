@@ -1,6 +1,15 @@
-.idea
-.sonar
-
-__pycache__/
+# Python bytecode
+__pycache__
 *.pyc
-sonarqube_api.egg-info/
+
+# JetBrains IDE (PyCharm)
+/.idea
+
+# SonarQube cache and logs
+/.sonar
+
+# Tox testing env
+/.tox
+
+# Egg for dev installs
+/sonarqube_api.egg-info

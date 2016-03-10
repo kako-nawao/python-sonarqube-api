@@ -47,7 +47,7 @@ setup(
 
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
-        'requests',
+        'requests>=2.9',
     ],
     extras_require={},
     package_data={},
