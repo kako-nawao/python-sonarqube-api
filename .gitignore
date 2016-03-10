@@ -8,8 +8,11 @@ __pycache__
 # SonarQube cache and logs
 /.sonar
 
-# Tox testing env
+# Testing env, coverage
+/.coverage
 /.tox
+/coverage
+/coverage.xml
 
 # Egg for dev installs
 /sonarqube_api.egg-info
