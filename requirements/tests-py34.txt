@@ -1,3 +1,0 @@
-# Tox env requirements for Python3
-
-nose

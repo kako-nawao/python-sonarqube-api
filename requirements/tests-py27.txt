@@ -1,4 +1,0 @@
-# Tox env requirements for Python2
-
-nose
-mock
