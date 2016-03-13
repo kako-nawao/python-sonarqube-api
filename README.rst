@@ -48,8 +48,7 @@ The methods supported by the SonarAPIHandler are:
 * ``get_rules``: yield active rules
 * ``get_resources_debt``: yield projects with their technical debt by category
 * ``get_resources_metrics``: yield projects with some general metrics
-* ``get_resources_full_data``: yield projects with their general metrics and
-technical debt by category (merge of previous two methods)
+* ``get_resources_full_data``: yield projects with their general metrics and technical debt by category (merge of previous two methods)
 
 Commands
 --------

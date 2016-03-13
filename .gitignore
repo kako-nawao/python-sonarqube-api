@@ -1,6 +1,11 @@
+# IDE and SonarQube scan data
 .idea
 .sonar
 
+# Python bytecode
 __pycache__/
 *.pyc
-sonarqube_api.egg-info/
+
+# Packaging artifacts
+/sonarqube_api.egg-info/
+/dist
