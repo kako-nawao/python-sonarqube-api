@@ -4,10 +4,12 @@ Python SonarQube API
 
 .. image:: https://img.shields.io/pypi/l/sonarqube-api.svg?style=plastic
     :target: http://www.opensource.org/licenses/MIT
-.. image:: https://img.shields.io/pypi/pyversions/Django.svg?style=plastic
+.. image:: https://img.shields.io/pypi/pyversions/sonarqube-api.svg?style=plastic
     :target: https://pypi.python.org/pypi/sonarqube-api
 .. image:: https://img.shields.io/pypi/v/sonarqube-api.svg?style=plastic
     :target: https://pypi.python.org/pypi/sonarqube-api
+.. image:: https://img.shields.io/travis/kako-nawao/python-sonarqube-api.svg
+    :target: https://travis-ci.org/kako-nawao/python-sonarqube-api
 .. image:: https://img.shields.io/pypi/dm/sonarqube-api.svg?style=plastic
     :target: https://pypi.python.org/pypi/sonarqube-api
 
