@@ -36,7 +36,7 @@ the first items.
 You can also specify a single resources to fetch, but keep in mind that the resource methods
 return generators, so you still need to *get the next object*::
 
-    proj = h.get_resources_full_data(resource='some:example').next()
+    proj = next(h.get_resources_full_data(resource='some:example'))
 
 Supported Methods
 -----------------
