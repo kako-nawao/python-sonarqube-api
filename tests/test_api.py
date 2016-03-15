@@ -84,7 +84,6 @@ class SonarAPIHandlerTest(TestCase):
 
     @mock.patch('sonarqube_api.api.SonarAPIHandler._make_call')
     def test_get_metrics(self, mock_call):
-        self.skipTest('fix: generator breaks mock_calls')
         # Two pages, once each
         resp = mock.MagicMock(status_code=200)
         resp.json.side_effect = [
@@ -101,16 +100,16 @@ class SonarAPIHandlerTest(TestCase):
                                      {'project': 'lolo', 'coverage': 71, 'violations': 23}])
 
         # Ensure make_call was called twice with correct params
-        # Note: do not use mock_calls or assert_has_calls or you'll get weird results, the list
-        # contains ONLY a call that mas never made (p: 3) twice
         self.assertEqual(mock_call.call_count, 2)
-        #import pdb; pdb.set_trace()
-        mock_call.assert_any_call('get', self.h.METRICS_LIST_ENDPOINT, {'f': 'coverage,violations'})
-        mock_call.assert_any_call('get', self.h.METRICS_LIST_ENDPOINT, {'f': 'coverage,violations', 'p': 2})
+        mock_call.assert_any_call(
+            'get', self.h.METRICS_LIST_ENDPOINT, f='coverage,violations'
+        )
+        mock_call.assert_any_call(
+            'get', self.h.METRICS_LIST_ENDPOINT, f='coverage,violations', p=2
+        )
 
     @mock.patch('sonarqube_api.api.SonarAPIHandler._make_call')
     def test_get_rules(self, mock_call):
-        self.skipTest('fix: generator breaks mock_calls')
         # Two pages, once each
         resp = mock.MagicMock(status_code=200)
         resp.json.side_effect = [
@@ -124,13 +123,15 @@ class SonarAPIHandlerTest(TestCase):
         self.assertEqual(resources, [{'key': 'lala'}, {'key': 'lele'}, {'key': 'lolo'}])
 
         # Ensure make_call was called twice with correct params
-        # Note: do not use mock_calls or assert_has_calls or you'll get weird results, the list
-        # contains ONLY a call that mas never made (p: 3) twice
         self.assertEqual(mock_call.call_count, 2)
-        mock_call.assert_any_call('get', self.h.RULES_LIST_ENDPOINT,
-                                    {'activation': 'true', 'qprofile': 'prof1', 'languages': 'py,js'})
-        mock_call.assert_any_call('get', self.h.RULES_LIST_ENDPOINT,
-                                    {'activation': 'true', 'qprofile': 'prof1', 'languages': 'py,js', 'p': 2})
+        mock_call.assert_any_call(
+            'get', self.h.RULES_LIST_ENDPOINT, is_template='no', statuses='READY',
+            activation='true', qprofile='prof1', languages='py,js'
+        )
+        mock_call.assert_any_call(
+            'get', self.h.RULES_LIST_ENDPOINT, is_template='no', statuses='READY',
+            activation='true', qprofile='prof1', languages='py,js', p=2
+        )
 
     @mock.patch('sonarqube_api.api.SonarAPIHandler._make_call')
     def test_get_resources_metrics(self, mock_call):
@@ -156,7 +157,7 @@ class SonarAPIHandlerTest(TestCase):
         # Ensure make_call was called once with correct params
         mock_call.assert_called_once_with(
             'get', self.h.RESOURCES_ENDPOINT,
-            {'metrics': ','.join(self.h.GENERAL_METRICS)}
+            metrics=','.join(self.h.GENERAL_METRICS)
         )
         mock_call.reset_mock()
 
@@ -176,8 +177,8 @@ class SonarAPIHandlerTest(TestCase):
         # Check call
         mock_call.assert_called_once_with(
             'get', self.h.RESOURCES_ENDPOINT,
-            {'resource': 'wow:lala', 'includetrends': 'true',
-             'metrics': ','.join(['coverage'] + list(self.h.NEW_METRICS))}
+            resource='wow:lala', includetrends='true',
+            metrics=','.join(['coverage'] + list(self.h.NEW_METRICS))
         )
 
     @mock.patch('sonarqube_api.api.SonarAPIHandler._make_call')
@@ -208,8 +209,8 @@ class SonarAPIHandlerTest(TestCase):
         # Ensure make_call was called once with correct params
         mock_call.assert_called_once_with(
             'get', self.h.RESOURCES_ENDPOINT,
-            {'resource': 'wow:wtf', 'model': 'SQALE', 'metrics': 'sqale_index',
-             'characteristics': 'TESTABILITY,MAINTAINABILITY'}
+            resource='wow:wtf', model='SQALE', metrics='sqale_index',
+            characteristics='TESTABILITY,MAINTAINABILITY'
         )
         mock_call.reset_mock()
 
@@ -252,10 +253,10 @@ class SonarAPIHandlerTest(TestCase):
         self.assertEqual(mock_call.call_count, 2)
         mock_call.assert_any_call(
             'get', self.h.RESOURCES_ENDPOINT,
-            {'resource': 'wow:wtf', 'metrics': 'coverage'}
+            resource='wow:wtf', metrics='coverage'
         )
         mock_call.assert_any_call(
             'get', self.h.RESOURCES_ENDPOINT,
-            {'resource': 'wow:wtf', 'model': 'SQALE', 'metrics': 'sqale_index',
-             'characteristics': 'TESTABILITY,MAINTAINABILITY'}
+            resource='wow:wtf', model='SQALE', metrics='sqale_index',
+            characteristics='TESTABILITY,MAINTAINABILITY'
         )

@@ -4,6 +4,7 @@ SonarQube server web service API.
 """
 import requests
 
+import copy
 from .exceptions import AuthError, ValidationError
 
 
@@ -77,7 +78,7 @@ class SonarAPIHandler(object):
         """
         return '{}:{}{}'.format(self._host, self._port, endpoint)
 
-    def _make_call(self, method, endpoint, data=None):
+    def _make_call(self, method, endpoint, **data):
         """
         Make the call to the service with the given method, queryset and body,
         and whatever params were set initially (auth).
@@ -120,7 +121,7 @@ class SonarAPIHandler(object):
             'status': status.upper(),
             'template_key': template_key
         }
-        res = self._make_call('post', self.RULES_CREATE_ENDPOINT, data)
+        res = self._make_call('post', self.RULES_CREATE_ENDPOINT, **data)
         return res
 
     def get_metrics(self, fields=None):
@@ -142,7 +143,7 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_metrics:
             # Update paging information for calculation
-            res = self._make_call('get', self.METRICS_LIST_ENDPOINT, qs).json()
+            res = self._make_call('get', self.METRICS_LIST_ENDPOINT, **qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_metrics = res['total']
@@ -189,7 +190,7 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_rules:
             # Update paging information for calculation
-            res = self._make_call('get', self.RULES_LIST_ENDPOINT, qs).json()
+            res = self._make_call('get', self.RULES_LIST_ENDPOINT, **qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_rules = res['total']
@@ -215,7 +216,7 @@ class SonarAPIHandler(object):
             params['resource'] = resource
 
         # Get the results
-        res = self._make_call('get', self.RESOURCES_ENDPOINT, params).json()
+        res = self._make_call('get', self.RESOURCES_ENDPOINT, **params).json()
 
         # Yield results
         for prj in res:
@@ -235,7 +236,7 @@ class SonarAPIHandler(object):
             params['metrics'] = ','.join([params['metrics']] + list(self.NEW_METRICS))
 
         # Make the call
-        res = self._make_call('get', self.RESOURCES_ENDPOINT, params).json()
+        res = self._make_call('get', self.RESOURCES_ENDPOINT, **params).json()
 
         # Iterate and yield results
         for prj in res:
