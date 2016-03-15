@@ -4,13 +4,7 @@ SonarQube server web service API.
 """
 import requests
 
-
-class AuthError(Exception):
-    pass
-
-
-class ValidationError(ValueError):
-    pass
+from .exceptions import AuthError, ValidationError
 
 
 class SonarAPIHandler(object):
@@ -22,6 +16,7 @@ class SonarAPIHandler(object):
     DEFAULT_PORT = 9000
 
     # Endpoint for resources and rules
+    AUTH_VALIDATION_ENDPOINT = '/api/authentication/validate'
     METRICS_LIST_ENDPOINT = '/api/metrics/search'
     RESOURCES_ENDPOINT = '/api/resources'
     RULES_LIST_ENDPOINT = '/api/rules/search'
@@ -82,7 +77,7 @@ class SonarAPIHandler(object):
         """
         return '{}:{}{}'.format(self._host, self._port, endpoint)
 
-    def _make_call(self, method, url, data=None):
+    def _make_call(self, method, endpoint, data=None):
         """
         Make the call to the service with the given method, queryset and body,
         and whatever params were set initially (auth).
@@ -94,6 +89,7 @@ class SonarAPIHandler(object):
         """
         # Get method and make the call
         call = getattr(self._session, method.lower())
+        url = self._get_url(endpoint)
         res = call(url, data=data or {})
 
         # Return res if res < 400, otherwise raise adequate exception
@@ -115,7 +111,6 @@ class SonarAPIHandler(object):
         :param rule_data: dictionary with rule data to create
         :return: True if rule was created, False if it already existed
         """
-        url = self._get_url(self.RULES_CREATE_ENDPOINT)
         data = {
             'custom_key': key,
             'name': name,
@@ -125,7 +120,7 @@ class SonarAPIHandler(object):
             'status': status.upper(),
             'template_key': template_key
         }
-        res = self._make_call('post', url, data)
+        res = self._make_call('post', self.RULES_CREATE_ENDPOINT, data)
         return res
 
     def get_metrics(self, fields=None):
@@ -147,8 +142,7 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_metrics:
             # Update paging information for calculation
-            url = self._get_url(self.METRICS_LIST_ENDPOINT)
-            res = self._make_call('get', url, qs).json()
+            res = self._make_call('get', self.METRICS_LIST_ENDPOINT, qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_metrics = res['total']
@@ -195,8 +189,7 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_rules:
             # Update paging information for calculation
-            url = self._get_url(self.RULES_LIST_ENDPOINT)
-            res = self._make_call('get', url, qs).json()
+            res = self._make_call('get', self.RULES_LIST_ENDPOINT, qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_rules = res['total']
@@ -222,8 +215,7 @@ class SonarAPIHandler(object):
             params['resource'] = resource
 
         # Get the results
-        url = self._get_url(self.RESOURCES_ENDPOINT)
-        res = self._make_call('get', url, params).json()
+        res = self._make_call('get', self.RESOURCES_ENDPOINT, params).json()
 
         # Yield results
         for prj in res:
@@ -243,14 +235,14 @@ class SonarAPIHandler(object):
             params['metrics'] = ','.join([params['metrics']] + list(self.NEW_METRICS))
 
         # Make the call
-        url = self._get_url(self.RESOURCES_ENDPOINT)
-        res = self._make_call('get', url, params).json()
+        res = self._make_call('get', self.RESOURCES_ENDPOINT, params).json()
 
         # Iterate and yield results
         for prj in res:
             yield prj
 
-    def get_resources_full_data(self, resource=None, metrics=None, include_trends=False):
+    def get_resources_full_data(self, resource=None, metrics=None,
+                                categories=None, include_trends=False):
         """
         Get a generator of resources (or a single resource) data including
         the given all merged metrics and debt data.
@@ -261,9 +253,19 @@ class SonarAPIHandler(object):
                                            include_trends=include_trends)}
 
         # Now merge the debt data using the key
-        for prj in self.get_resources_debt(resource=resource):
+        for prj in self.get_resources_debt(resource=resource, categories=categories):
             prjs[prj['key']]['msr'].extend(prj['msr'])
 
         # Return only values (list-like object)
         for prj in prjs.values():
             yield prj
+
+    def validate_authentication(self):
+        """
+        Validate the authentication credentials passed on client initialization.
+        This can be used to test the connection, since the API always returns 200.
+
+        :return: True if valid
+        """
+        res = self._make_call('get', self.AUTH_VALIDATION_ENDPOINT).json()
+        return res.get('valid', False)

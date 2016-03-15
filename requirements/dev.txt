@@ -1,0 +1,4 @@
+# Development requirements, needed to run tests
+
+requests>=2.9,<2.99
+tox>=2.3,<2.99

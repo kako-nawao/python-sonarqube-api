@@ -1,0 +1,12 @@
+[run]
+branch = True
+source = sonarqube_api
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise AssertionError
+    raise NotImplementedError
+
+[html]
+directory = coverage

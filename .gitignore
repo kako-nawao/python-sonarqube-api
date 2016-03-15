@@ -1,11 +1,21 @@
-# IDE and SonarQube scan data
-.idea
-.sonar
-
 # Python bytecode
-__pycache__/
+__pycache__
 *.pyc
 
+# JetBrains IDE (PyCharm)
+/.idea
+
+# SonarQube cache and logs
+/.sonar
+
+# Testing env, coverage
+/.coverage
+/.tox
+/coverage
+/coverage.xml
+
 # Packaging artifacts
-/sonarqube_api.egg-info/
+/build
 /dist
+/sonarqube_api.egg-info/
+
