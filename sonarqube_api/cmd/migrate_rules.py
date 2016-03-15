@@ -82,7 +82,7 @@ def run():
 
                 except ValidationError as e:
                     # Ok, this could be an issue or not
-                    if 'already exists' in e.message:
+                    if 'already exists' in str(e):
                         # Oh, it already existed there, no problem
                         s += 1
 

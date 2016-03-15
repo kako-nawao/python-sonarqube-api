@@ -103,10 +103,11 @@ def run():
                     rule.get('debtRemFnOffset', rule.get('debtRemFnCoeff', u'-')),
                     u''.join(params_htmls), rule.get('htmlDesc', u'-')
                 )
-                html_f.write(HTML_RULE_TEMPLATE.format(*values).encode('utf-8'))
+                html = str(HTML_RULE_TEMPLATE.format(*values).encode('utf-8'))
+                html_f.write(html)
 
         except Exception as e:
-            sys.stderr.write("Error: {}\n".format(e.message))
+            sys.stderr.write("Error: {}\n".format(e))
 
         # Close html body and document
         html_f.write(u'</body></html>')
