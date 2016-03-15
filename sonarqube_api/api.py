@@ -83,6 +83,9 @@ class SonarAPIHandler(object):
         Make the call to the service with the given method, queryset and body,
         and whatever params were set initially (auth).
 
+        Note: data is not passed as a single dictionary to ensure testability
+        (see https://github.com/kako-nawao/python-sonarqube-api/issues/15).
+
         :param method: http method (get, post, put, patch) as str
         :param url: target url to make request
         :param data: queryset or body as dict
