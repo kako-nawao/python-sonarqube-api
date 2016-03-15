@@ -87,8 +87,8 @@ class SonarAPIHandler(object):
         (see https://github.com/kako-nawao/python-sonarqube-api/issues/15).
 
         :param method: http method (get, post, put, patch) as str
-        :param url: target url to make request
-        :param data: queryset or body as dict
+        :param endpoint: relative url to make the call
+        :param data: queryset or body
         :return: response
         """
         # Get method and make the call

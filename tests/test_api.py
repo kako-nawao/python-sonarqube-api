@@ -14,7 +14,7 @@ from sonarqube_api.exceptions import AuthError, ValidationError
 class SonarAPIHandlerTest(TestCase):
 
     def setUp(self):
-        self.h = SonarAPIHandler()
+        self.h = SonarAPIHandler(user='admin', password='admin')
 
     @mock.patch('sonarqube_api.api.requests.Session.get')
     def test_validate_auth(self, mock_res):
