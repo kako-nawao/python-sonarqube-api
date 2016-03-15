@@ -2,6 +2,11 @@
 Python SonarQube API
 ====================
 
+.. image:: https://img.shields.io/pypi/l/sonarqube-api.svg?style=plastic :target: https://pypi.python.org/pypi/sonarqube-api
+.. image:: https://img.shields.io/pypi/pyversions/Django.svg?style=plastic :target: https://pypi.python.org/pypi/sonarqube-api
+.. image:: https://img.shields.io/pypi/v/sonarqube-api.svg?style=plastic :target: https://pypi.python.org/pypi/sonarqube-api
+.. image:: https://img.shields.io/pypi/dm/sonarqube-api.svg?style=plastic :target: https://pypi.python.org/pypi/sonarqube-api
+
 API Handler for SonarQube web service, providing basic authentication (which
 seems to be the only kind that SonarQube supports) and a few methods to fetch
 metrics and rules, as well as methods to create rules and (soon) profiles.
