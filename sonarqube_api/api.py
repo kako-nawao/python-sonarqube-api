@@ -4,6 +4,7 @@ SonarQube server web service API.
 """
 import requests
 
+import copy
 from .exceptions import AuthError, ValidationError
 
 
@@ -77,14 +78,17 @@ class SonarAPIHandler(object):
         """
         return '{}:{}{}'.format(self._host, self._port, endpoint)
 
-    def _make_call(self, method, endpoint, data=None):
+    def _make_call(self, method, endpoint, **data):
         """
         Make the call to the service with the given method, queryset and body,
         and whatever params were set initially (auth).
 
+        Note: data is not passed as a single dictionary to ensure testability
+        (see https://github.com/kako-nawao/python-sonarqube-api/issues/15).
+
         :param method: http method (get, post, put, patch) as str
-        :param url: target url to make request
-        :param data: queryset or body as dict
+        :param endpoint: relative url to make the call
+        :param data: queryset or body
         :return: response
         """
         # Get method and make the call
@@ -120,7 +124,7 @@ class SonarAPIHandler(object):
             'status': status.upper(),
             'template_key': template_key
         }
-        res = self._make_call('post', self.RULES_CREATE_ENDPOINT, data)
+        res = self._make_call('post', self.RULES_CREATE_ENDPOINT, **data)
         return res
 
     def get_metrics(self, fields=None):
@@ -142,7 +146,7 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_metrics:
             # Update paging information for calculation
-            res = self._make_call('get', self.METRICS_LIST_ENDPOINT, qs).json()
+            res = self._make_call('get', self.METRICS_LIST_ENDPOINT, **qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_metrics = res['total']
@@ -189,7 +193,7 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_rules:
             # Update paging information for calculation
-            res = self._make_call('get', self.RULES_LIST_ENDPOINT, qs).json()
+            res = self._make_call('get', self.RULES_LIST_ENDPOINT, **qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_rules = res['total']
@@ -215,7 +219,7 @@ class SonarAPIHandler(object):
             params['resource'] = resource
 
         # Get the results
-        res = self._make_call('get', self.RESOURCES_ENDPOINT, params).json()
+        res = self._make_call('get', self.RESOURCES_ENDPOINT, **params).json()
 
         # Yield results
         for prj in res:
@@ -235,7 +239,7 @@ class SonarAPIHandler(object):
             params['metrics'] = ','.join([params['metrics']] + list(self.NEW_METRICS))
 
         # Make the call
-        res = self._make_call('get', self.RESOURCES_ENDPOINT, params).json()
+        res = self._make_call('get', self.RESOURCES_ENDPOINT, **params).json()
 
         # Iterate and yield results
         for prj in res:
