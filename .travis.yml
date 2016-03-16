@@ -1,4 +1,8 @@
 language: python
 install:
   - pip install -r requirements/dev.txt
-script: tox
+  - pip install coveralls
+script:
+  tox
+after_success:
+  coveralls

@@ -8,10 +8,12 @@ Python SonarQube API
     :target: https://pypi.python.org/pypi/sonarqube-api
 .. image:: https://img.shields.io/pypi/v/sonarqube-api.svg?style=plastic
     :target: https://pypi.python.org/pypi/sonarqube-api
-.. image:: https://img.shields.io/travis/kako-nawao/python-sonarqube-api.svg?style=plastic
-    :target: https://travis-ci.org/kako-nawao/python-sonarqube-api
 .. image:: https://img.shields.io/pypi/dm/sonarqube-api.svg?style=plastic
     :target: https://pypi.python.org/pypi/sonarqube-api
+.. image:: https://img.shields.io/travis/kako-nawao/python-sonarqube-api.svg?style=plastic
+    :target: https://travis-ci.org/kako-nawao/python-sonarqube-api
+.. image:: https://img.shields.io/coveralls/kako-nawao/python-sonarqube-api.svg?style=plastic
+    :target: https://coveralls.io/github/kako-nawao/python-sonarqube-api
 
 API Handler for SonarQube web service, providing basic authentication (which
 seems to be the only kind that SonarQube supports) and a few methods to fetch
