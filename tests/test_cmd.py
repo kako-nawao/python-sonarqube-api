@@ -14,14 +14,14 @@ from sonarqube_api.exceptions import AuthError, ValidationError
 
 class ExportRulesTest(TestCase):
 
-    @mock.patch('sonarqube_api.cmd.export_rules.open', create=True)
-    @mock.patch('sonarqube_api.cmd.export_rules.sys.stdout.write')
-    @mock.patch('sonarqube_api.cmd.export_rules.sys.stderr.write')
+    @mock.patch('sonarqube_api.cmd.export_rules.open')
+    @mock.patch('sonarqube_api.cmd.export_rules.sys.stdout')
+    @mock.patch('sonarqube_api.cmd.export_rules.sys.stderr')
     @mock.patch('csv.writer')
     @mock.patch('sonarqube_api.cmd.export_rules.argparse.ArgumentParser.parse_args')
     @mock.patch('sonarqube_api.api.SonarAPIHandler.get_rules')
-    def test_main(self, get_rules_mock, parse_mock, writer_mock, stderr_write_mock,
-                  stdout_write_mock, open_mock):
+    def test_main(self, get_rules_mock, parse_mock, writer_mock, stderr_mock,
+                  stdout_mock, open_mock):
         # Set call arguments: active only, spec profile and langs
         parse_mock.return_value = mock.MagicMock(
             host='localhost', port='9000', user='pancho', password='primero',
@@ -59,10 +59,10 @@ class ExportRulesTest(TestCase):
         get_rules_mock.assert_called_once_with(True, 'prof1', 'py,js')
 
         # Check error calls
-        stderr_write_mock.assert_called_once_with("Error: missing values for langName\n")
+        stderr_mock.write.assert_called_once_with("Error: missing values for langName\n")
 
         # Check stdout write: 3 exported and 1 failed
-        stdout_write_mock.assert_called_once_with('Complete rules export: 3 exported and 1 failed.\n')
+        stdout_mock.write.assert_called_once_with('Complete rules export: 3 exported and 1 failed.\n')
 
         # Check calls to csv write, should have written header and three valid rules
         self.assertEqual(writer_mock.return_value.writerow.mock_calls, [
