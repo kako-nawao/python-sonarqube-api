@@ -41,7 +41,7 @@ GET_RULES_DATA = [
 
 class ExportRulesTest(TestCase):
 
-    @mock.patch('sonarqube_api.cmd.export_rules.open')
+    @mock.patch('sonarqube_api.cmd.export_rules.open', create=True)
     @mock.patch('sonarqube_api.cmd.export_rules.sys.stdout')
     @mock.patch('sonarqube_api.cmd.export_rules.sys.stderr')
     @mock.patch('csv.writer')
