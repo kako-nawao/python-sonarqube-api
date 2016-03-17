@@ -39,7 +39,7 @@ parser.add_argument('--target-password', dest='target_password', type=str,
                     help='Authentication password for target server')
 
 
-def run():
+def main():
     """
     Migrate custom rules from one server to another one.
     """
@@ -52,8 +52,8 @@ def run():
     # Get the generator of source rules
     rules = sh.get_rules(active_only=True, custom_only=True)
 
-    # Keep counters for total, created, skipped and failed
-    t, c, s, f = 0, 0, 0, 0
+    # Counters (total, created, skipped and failed)
+    c, s, f = 0, 0, 0
 
     # Now import and keep count
     try:
@@ -62,7 +62,6 @@ def run():
             params = rule.get('params')
             if params:
                 # Ok, let's try to create it
-                t += 1
                 try:
                     # Get key, message, and xpath params
                     key = rule['key'].split(':')[-1]
@@ -81,25 +80,30 @@ def run():
                     c += 1
 
                 except ValidationError as e:
-                    # Ok, this could be an issue or not
+                    # Validation error, should continue execution afterwards
                     if 'already exists' in str(e):
-                        # Oh, it already existed there, no problem
+                        # Rule already exists, skip
                         s += 1
 
                     else:
-                        # Oh, sometjing weent wrong, inform
+                        # Invalid data for rule creation, fail
                         f += 1
                         sys.stderr.write("Failed to create rule {}: "
                                          "{}\n".format(rule['key'], e))
 
     except Exception as e:
+        # Other errors, stop execution immediately
         sys.stderr.write("Error: {}\n".format(e))
+        status = 'Incomplete'
 
     else:
-        # Log final results
-        sys.stdout.write("Done with creation of {} rules: {} created, {} skipped"
-                         " (already existing) and {} failed.\n".format(t, c, s, f))
+        # No errors, write result
+        status = 'Complete'
+
+    # Finally, write results
+    sys.stdout.write("{} rules migration: {} created, {} skipped (already "
+                     "existing) and {} failed.\n".format(status, c, s, f))
 
 
 if __name__ == '__main__':
-    run()
+    main()

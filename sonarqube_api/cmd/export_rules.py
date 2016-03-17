@@ -48,7 +48,7 @@ parser.add_argument('--languages', dest='languages', type=str,
                     help='Language to filter the rules to export')
 
 
-def run():
+def main():
     """
     Export a SonarQube's rules to a CSV and an HTML file, using a
     SonarAPIHandler connected to the given host.
@@ -73,45 +73,70 @@ def run():
         rules = h.get_rules(options.active,
                             options.profile,
                             options.languages)
+
+        # Counters (total, exported and failed)
+        s, f = 0, 0
+
+        # Now import and keep count
         try:
             for rule in rules:
-                # Write CSV row
-                csv_w.writerow([
-                    rule['langName'],
-                    rule['key'],
-                    rule['name'],
-                    # Note: debt can be in diff. fields depending on type
-                    rule.get('debtRemFnOffset',
-                             rule.get('debtRemFnCoeff', u'-')),
-                    rule['severity']
-                ])
+                try:
+                    # Write CSV row
+                    csv_w.writerow([
+                        rule['langName'],
+                        rule['key'],
+                        rule['name'],
+                        # Note: debt can be in diff. fields depending on type
+                        rule.get('debtRemFnOffset',
+                                 rule.get('debtRemFnCoeff', u'-')),
+                        rule['severity']
+                    ])
 
-                # Render parameters sublist
-                params_htmls = []
-                if rule['params']:
-                    for param in rule['params']:
-                        params_htmls.append(u'<li>{}: {}</li>'.format(
-                            param.get('key', u'-'),
-                            param.get('defaultValue', u'-')
-                        ))
-                else:
-                    params_htmls.append(u'-')
+                    # Render parameters sublist
+                    params_htmls = []
+                    if rule['params']:
+                        for param in rule['params']:
+                            params_htmls.append(u'<li>{}: {}</li>'.format(
+                                param.get('key', u'-'),
+                                param.get('defaultValue', u'-')
+                            ))
+                    else:
+                        params_htmls.append(u'-')
 
-                values = (
-                    rule['key'], rule['name'], rule['langName'],
-                    rule['key'], rule['severity'],
-                    rule.get('debtRemFnOffset', rule.get('debtRemFnCoeff', u'-')),
-                    u''.join(params_htmls), rule.get('htmlDesc', u'-')
-                )
-                html = str(HTML_RULE_TEMPLATE.format(*values).encode('utf-8'))
-                html_f.write(html)
+                    # Build values to write in html
+                    values = (
+                        rule['key'], rule['name'], rule['langName'],
+                        rule['key'], rule['severity'],
+                        rule.get('debtRemFnOffset', rule.get('debtRemFnCoeff', u'-')),
+                        u''.join(params_htmls), rule.get('htmlDesc', u'-')
+                    )
 
-        except Exception as e:
-            sys.stderr.write("Error: {}\n".format(e))
+                    # Render html and write to file
+                    html = str(HTML_RULE_TEMPLATE.format(*values).encode('utf-8'))
+                    html_f.write(html)
+                    s += 1
 
-        # Close html body and document
-        html_f.write(u'</body></html>')
+                except KeyError as exc:
+                    # Key error, should continue execution afterwards
+                    sys.stderr.write("Error: missing values for {}\n".format(','.join(exc.args)))
+                    f += 1
+
+            # Done with rules, close html body and document
+            html_f.write(u'</body></html>')
+
+        except Exception as exc:
+            # Other errors, stop execution immediately
+            sys.stderr.write("Error: {}\n".format(exc))
+            status = 'Incomplete'
+
+        else:
+            # No errors, complete
+            status = 'Complete'
+
+        # Finally, write results
+        sys.stdout.write("{} rules export: {} exported and "
+                         "{} failed.\n".format(status, s, f))
 
 
 if __name__ == '__main__':
-    run()
+    main()
