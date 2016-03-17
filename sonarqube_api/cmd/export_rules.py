@@ -7,6 +7,7 @@ import os
 import sys
 
 from sonarqube_api.api import SonarAPIHandler
+from sonarqube_api.utils import utf_encode
 
 
 # HTML rule section template
@@ -112,7 +113,7 @@ def main():
                     )
 
                     # Render html and write to file
-                    html = str(HTML_RULE_TEMPLATE.format(*values).encode('utf-8'))
+                    html = utf_encode(HTML_RULE_TEMPLATE.format(*values))
                     html_f.write(html)
                     s += 1
 
