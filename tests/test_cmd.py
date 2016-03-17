@@ -9,7 +9,34 @@ except ImportError:
 
 from sonarqube_api.cmd import export_rules
 from sonarqube_api.cmd import migrate_rules
-from sonarqube_api.exceptions import AuthError, ValidationError
+from sonarqube_api.exceptions import ValidationError
+
+
+GET_RULES_DATA = [
+    # Custom, use params
+    {'langName': 'Python', 'key': 'L1456', 'name': 'Do not break userspace', 'debtRemFnOffset': 15,
+     'severity': 'BLOCKER', 'htmlDesc': '<p>LOL, WTF bro</p>', 'mdDesc': 'LOL, WTF bro', 'status': 'ACTIVE',
+     'params': [{'key': 'xpathQuery', 'defaultValue': 'lala'}, {'key': 'message', 'defaultValue': 'Broken'}],
+     'templateKey': 'xpath'},
+    # Another custom
+    {'langName': 'Python', 'key': 'X123', 'name': 'Do not use so many elifs', 'debtRemFnOffset': 15,
+     'severity': 'MAJOR', 'htmlDesc': '<p>LOL, WTF bro</p>', 'mdDesc': 'LOL, WTF bro', 'status': 'ACTIVE',
+     'params': [{'key': 'xpathQuery', 'defaultValue': 'elifX5'}, {'key': 'message', 'defaultValue': 'Easy on the elifs'}],
+     'templateKey': 'xpath'},
+    # Not custom, no params
+    {'langName': 'JavaScript', 'key': 'S1456', 'name': 'Missing semi-colon', 'debtRemFnCoeff': 5,
+     'severity': 'MINOR', 'htmlDesc': '<p>yeah, your forgot about the semi-colon, dude</p>', 'mdDesc': 'haha',
+     'params': [], 'status': 'ACTIVE', 'templateKey': 'xpath'},
+    # Error, missing key data
+    {'langName': 'Python', 'name': 'This rule is broken', 'debtRemFnCoeff': 12,
+     'severity': 'MAJOR', 'htmlDesc': '<p>broken rule</p>', 'mdDesc': 'broken rule',
+     'params': [], 'status': 'ACTIVE', 'templateKey': 'xpath'},
+    # Custom again
+    {'langName': 'JavaScript', 'key': 'X1456', 'name': 'wrong format', 'debtRemFnCoeff': 10,
+     'severity': 'MINOR', 'htmlDesc': '<p>Oops</p>', 'mdDesc': 'Oops', 'status': 'ACTIVE',
+     'params': [{'key': 'xpathQuery', 'defaultValue': 'lololo'}, {'key': 'message', 'defaultValue': 'Oops'}],
+     'templateKey': 'xpath'},
+]
 
 
 class ExportRulesTest(TestCase):
@@ -35,22 +62,7 @@ class ExportRulesTest(TestCase):
         open_mock.side_effect = [csv_file, html_file]
 
         # Set data to receive from server
-        get_rules_mock.return_value = iter([
-            # Custom, use params
-            {'langName': 'Python', 'key': 'L1456', 'name': 'Do not break userspace', 'debtRemFnOffset': 15,
-             'severity': 'BLOCKER', 'htmlDesc': '<p>LOL, WTF bro</p>',
-             'params': [{'key': 'xpathQuery', 'defaultValue': 'lala'}, {'key': 'message', 'defaultValue': 'Broken'}]},
-            # Not custom, no params
-            {'langName': 'JavaScript', 'key': 'S1456', 'name': 'Missing semi-colon', 'debtRemFnCoeff': 5,
-             'severity': 'MINOR', 'htmlDesc': '<p>yeah, your forgot about the semi-colon, dude</p>',
-             'params': []},
-            # Error, missing data
-            {},
-            # Last one is correct, but not written
-            {'langName': 'JavaScript', 'key': 'X1456', 'name': 'wrong format', 'debtRemFnCoeff': 10,
-             'severity': 'MINOR', 'htmlDesc': '<p>Oops</p>',
-             'params': []},
-        ])
+        get_rules_mock.return_value = iter(GET_RULES_DATA)
 
         # Execute command
         export_rules.main()
@@ -59,15 +71,16 @@ class ExportRulesTest(TestCase):
         get_rules_mock.assert_called_once_with(True, 'prof1', 'py,js')
 
         # Check error calls
-        stderr_mock.write.assert_called_once_with("Error: missing values for langName\n")
+        stderr_mock.write.assert_called_once_with("Error: missing values for key\n")
 
         # Check stdout write: 3 exported and 1 failed
-        stdout_mock.write.assert_called_once_with('Complete rules export: 3 exported and 1 failed.\n')
+        stdout_mock.write.assert_called_once_with('Complete rules export: 4 exported and 1 failed.\n')
 
         # Check calls to csv write, should have written header and three valid rules
         self.assertEqual(writer_mock.return_value.writerow.mock_calls, [
             mock.call(['language', 'key', 'name', 'debt', 'severity']),
             mock.call(['Python', 'L1456', 'Do not break userspace', 15, 'BLOCKER']),
+            mock.call(['Python', 'X123', 'Do not use so many elifs', 15, 'MAJOR']),
             mock.call(['JavaScript', 'S1456', 'Missing semi-colon', 5, 'MINOR']),
             mock.call(['JavaScript', 'X1456', 'wrong format', 10, 'MINOR']),
         ])
@@ -77,7 +90,43 @@ class ExportRulesTest(TestCase):
 
 class MigrateRulesTest(TestCase):
 
-    def test_main(self):
-        self.skipTest('tomorrow')
-        export_rules.main()
+    @mock.patch('sonarqube_api.cmd.export_rules.sys.stdout')
+    @mock.patch('sonarqube_api.cmd.export_rules.sys.stderr')
+    @mock.patch('sonarqube_api.cmd.export_rules.argparse.ArgumentParser.parse_args')
+    @mock.patch('sonarqube_api.api.SonarAPIHandler.get_rules')
+    @mock.patch('sonarqube_api.api.requests.Session.post')
+    def test_main(self, post_mock, get_rules_mock, parse_mock, stderr_mock, stdout_mock):
+        # Set call arguments: active only, spec profile and langs
+        parse_mock.return_value = mock.MagicMock(
+            source_host='localhost', source_port='9000', source_user='pancho', source_password='primero',
+            target_host='another.host', target_port='9000', target_user='pancho', target_password='primero',
+        )
 
+        # Set responses from source and target
+        get_rules_mock.return_value = iter(GET_RULES_DATA)
+        post_mock.side_effect = [
+            # First rule: OK
+            mock.MagicMock(status_code=200),
+            # Second rule: repeated
+            mock.MagicMock(status_code=400,
+                           json=mock.MagicMock(return_value={'errors': [{'msg': 'Rule js:S1456 already exists.'}]})),
+            # Third rule is ignored because it's not custom, no post
+            # Fourth rule fails because it's missing key field, no post
+            # Fifth rule: missing made-up field
+            mock.MagicMock(status_code=400,
+                           json=mock.MagicMock(return_value={'errors': [{'msg': 'Missing field newField.'}]})),
+        ]
+
+        # Execute command
+        migrate_rules.main()
+
+        # Check call to get_rules, should be one
+        get_rules_mock.assert_called_once_with(active_only=True, custom_only=True)
+
+        # Check error calls, should be one for last
+        stderr_mock.write.assert_called_once_with("Failed to create rule X1456: Missing field newField.\n")
+
+        # Check stdout write: 1 created, 1 skipped and 1 failed (1 w/o params ignored)
+        stdout_mock.write.assert_called_once_with(
+            "Complete rules migration: 1 created, 1 skipped (already existing) and 1 failed.\n"
+        )
