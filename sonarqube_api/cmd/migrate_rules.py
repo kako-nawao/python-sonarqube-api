@@ -103,7 +103,3 @@ def main():
     # Finally, write results
     sys.stdout.write("{} rules migration: {} created, {} skipped (already "
                      "existing) and {} failed.\n".format(status, c, s, f))
-
-
-if __name__ == '__main__':
-    main()

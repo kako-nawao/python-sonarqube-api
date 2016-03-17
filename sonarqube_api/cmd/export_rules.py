@@ -136,7 +136,3 @@ def main():
         # Finally, write results
         sys.stdout.write("{} rules export: {} exported and "
                          "{} failed.\n".format(status, s, f))
-
-
-if __name__ == '__main__':
-    main()
