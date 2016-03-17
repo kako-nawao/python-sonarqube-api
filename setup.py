@@ -21,7 +21,7 @@ setup(
     name='sonarqube_api',
 
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.6',
+    version='1.0.7',
 
     description='SonarQube API Handler',
     long_description=long_description,
@@ -60,8 +60,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'export-sonarqube-rules=sonarqube_api.cmd.export_rules:run',
-            'migrate-sonarqube-rules=sonarqube_api.cmd.migrate_rules:run',
+            'export-sonarqube-rules=sonarqube_api.cmd.export_rules:main',
+            'migrate-sonarqube-rules=sonarqube_api.cmd.migrate_rules:main',
         ],
     },
 )
