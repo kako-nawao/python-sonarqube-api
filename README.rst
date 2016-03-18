@@ -22,7 +22,7 @@ metrics and rules, as well as methods to create rules and (soon) profiles.
 Installation
 ============
 
-Install from this repository::
+Install from pypi::
 
     pip install sonarqube-api
 
@@ -56,6 +56,7 @@ Supported Methods
 
 The methods supported by the SonarAPIHandler are:
 
+* ``activate_rule``: activate a rule for a given profile in the server
 * ``create_rule``: create a rule in the server
 * ``get_metrics``: yield metrics definition
 * ``get_rules``: yield active rules
