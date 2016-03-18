@@ -2,9 +2,9 @@
 This module contains the SonarAPIHandler, used for communicating with the
 SonarQube server web service API.
 """
+
 import requests
 
-import copy
 from .exceptions import AuthError, ValidationError
 
 
@@ -20,6 +20,7 @@ class SonarAPIHandler(object):
     AUTH_VALIDATION_ENDPOINT = '/api/authentication/validate'
     METRICS_LIST_ENDPOINT = '/api/metrics/search'
     RESOURCES_ENDPOINT = '/api/resources'
+    RULES_ACTIVATION_ENDPOINT = '/api/qualityprofiles/activate_rule'
     RULES_LIST_ENDPOINT = '/api/rules/search'
     RULES_CREATE_ENDPOINT = '/api/rules/create'
 
@@ -80,13 +81,13 @@ class SonarAPIHandler(object):
 
     def _make_call(self, method, endpoint, **data):
         """
-        Make the call to the service with the given method, queryset and body,
-        and whatever params were set initially (auth).
+        Make the call to the service with the given method, queryset and data,
+        using the initial session.
 
-        Note: data is not passed as a single dictionary to ensure testability
+        Note: data is not passed as a single dictionary for better testability
         (see https://github.com/kako-nawao/python-sonarqube-api/issues/15).
 
-        :param method: http method (get, post, put, patch) as str
+        :param method: http method (get, post, put, patch)
         :param endpoint: relative url to make the call
         :param data: queryset or body
         :return: response
@@ -107,14 +108,52 @@ class SonarAPIHandler(object):
             msg = ', '.join(e['msg'] for e in res.json()['errors'])
             raise ValidationError(msg)
 
+    def activate_rule(self, key, profile_key, reset=False, severity='MINOR',
+                      **params):
+        """
+        Activate a rule for a given quality profile.
+
+        :param key: key of the rule
+        :param profile_key: key of the profile
+        :param reset: reset severity and params to default
+        :param severity: severity of rule for given profile
+        :param params: customized parameters for the rule
+        :return: request response
+        """
+        # Build main data to post
+        data = {
+            'rule_key': key,
+            'profile_key': profile_key,
+            'reset': reset and 'true' or 'false'
+        }
+
+        if not reset:
+            # Add params and severity if we're not resetting to defaults
+            data.update({
+                'params': ';'.join('{}={}'.format(k, v) for k, v in params.items()),
+                'severity': severity
+            })
+
+        # Make call (might raise exception) and return
+        res = self._make_call('post', self.RULES_ACTIVATION_ENDPOINT, **data)
+        return res
+
     def create_rule(self, key, name, description, message, xpath, severity,
                     status, template_key):
         """
-        Create a a custom rule in the connected server.
+        Create a a custom rule.
 
-        :param rule_data: dictionary with rule data to create
-        :return: True if rule was created, False if it already existed
+        :param key: key of the rule to create
+        :param name: name of the rule
+        :param description: markdown description of the rule
+        :param message: issue message (title) for the rule
+        :param xpath: xpath query to select the violation code
+        :param severity: default severity for the rule
+        :param status: status of the rule
+        :param template_key: key of the template from which rule is created
+        :return: request response
         """
+        # Build data to post
         data = {
             'custom_key': key,
             'name': name,
@@ -124,12 +163,17 @@ class SonarAPIHandler(object):
             'status': status.upper(),
             'template_key': template_key
         }
+
+        # Make call (might raise exception) and return
         res = self._make_call('post', self.RULES_CREATE_ENDPOINT, **data)
         return res
 
     def get_metrics(self, fields=None):
         """
-        Get a generator with the specified metric data (or all if no key is given).
+        Yield defined metrics.
+
+        :param fields: iterable or comma-separated string of field names
+        :return: generator that yields metric data dicts
         """
         # Build queryset including fields if required
         qs = {}
@@ -146,7 +190,8 @@ class SonarAPIHandler(object):
         # Cycle through rules
         while page_num * page_size < n_metrics:
             # Update paging information for calculation
-            res = self._make_call('get', self.METRICS_LIST_ENDPOINT, **qs).json()
+            res = self._make_call('get', self.METRICS_LIST_ENDPOINT,
+                                  **qs).json()
             page_num = res['p']
             page_size = res['ps']
             n_metrics = res['total']
@@ -161,9 +206,13 @@ class SonarAPIHandler(object):
     def get_rules(self, active_only=False, profile=None, languages=None,
                   custom_only=False):
         """
-        Get a generator of rules for the given active state, profile or
-        languages (or all if none is given). Only READY, non-template rules
-        are yielded.
+        Yield rules in status ready, that are not template rules.
+
+        :param active_only: filter only active rules
+        :param profile: key of profile to filter rules
+        :param languages: key of languages to filter rules
+        :param custom_only: filter only custom rules
+        :return: generator that yields rule data dicts
         """
         # Build the queryset
         qs = {'is_template': 'no', 'statuses': 'READY'}
@@ -207,8 +256,11 @@ class SonarAPIHandler(object):
 
     def get_resources_debt(self, resource=None, categories=None):
         """
-        Get a generator of resources (or a single resource) data including
-        the debt by category for the given categories (all by default).
+        Yield first-level resources with debt by category (aka. characteristic).
+
+        :param resource: key of the resource to select
+        :param categories: iterable of debt characteristics by name
+        :return: generator that yields resource debt data dicts
         """
         # Build parameters
         params = {
@@ -225,10 +277,15 @@ class SonarAPIHandler(object):
         for prj in res:
             yield prj
 
-    def get_resources_metrics(self, resource=None, metrics=None, include_trends=False):
+    def get_resources_metrics(self, resource=None, metrics=None,
+                              include_trends=False):
         """
-        Get a generator of resources (or a single resource) data including
-        the given (or default) metrics.
+        Yield first-level resources with generic metrics.
+
+        :param resource: key of the resource to select
+        :param metrics: iterable of metrics to return by name
+        :param include_trends: include differential values for leak periods
+        :return: generator that yields resource metrics data dicts
         """
         # Build parameters
         params = {'metrics': ','.join(metrics or self.GENERAL_METRICS)}
@@ -236,7 +293,8 @@ class SonarAPIHandler(object):
             params['resource'] = resource
         if include_trends:
             params['includetrends'] = 'true'
-            params['metrics'] = ','.join([params['metrics']] + list(self.NEW_METRICS))
+            params['metrics'] = ','.join([params['metrics']] +
+                                         list(self.NEW_METRICS))
 
         # Make the call
         res = self._make_call('get', self.RESOURCES_ENDPOINT, **params).json()
@@ -248,8 +306,13 @@ class SonarAPIHandler(object):
     def get_resources_full_data(self, resource=None, metrics=None,
                                 categories=None, include_trends=False):
         """
-        Get a generator of resources (or a single resource) data including
-        the given all merged metrics and debt data.
+        Yield first-level resources with merged generic and debt metrics.
+
+        :param resource: key of the resource to select
+        :param metrics: iterable of metrics to return by name
+        :param categories: iterable of debt characteristics by name
+        :param include_trends: include differential values for leak periods
+        :return: generator that yields resource metrics and debt data dicts
         """
         # First make a dict with all resources
         prjs = {prj['key']: prj for prj in
@@ -257,7 +320,8 @@ class SonarAPIHandler(object):
                                            include_trends=include_trends)}
 
         # Now merge the debt data using the key
-        for prj in self.get_resources_debt(resource=resource, categories=categories):
+        for prj in self.get_resources_debt(resource=resource,
+                                           categories=categories):
             prjs[prj['key']]['msr'].extend(prj['msr'])
 
         # Return only values (list-like object)
@@ -267,7 +331,7 @@ class SonarAPIHandler(object):
     def validate_authentication(self):
         """
         Validate the authentication credentials passed on client initialization.
-        This can be used to test the connection, since the API always returns 200.
+        This can be used to test the connection, since API always returns 200.
 
         :return: True if valid
         """
