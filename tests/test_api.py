@@ -57,6 +57,29 @@ class SonarAPIHandlerTest(TestCase):
         self.assertRaises(ValidationError, next, self.h.get_metrics())
 
     @mock.patch('sonarqube_api.api.requests.Session.post')
+    def test_activate_rule(self, mock_post):
+        # Missing param key
+        resp = mock.MagicMock(status_code=400)
+        resp.json.return_value = {'errors': [{'msg': 'The rule_key parameter is missing'}]}
+        mock_post.return_value = resp
+        with self.assertRaises(ValidationError):
+            self.h.activate_rule(None, 'py-234454', reset=True, severity='MAJOR', format='^setUp|tearDown$')
+
+        # Check call, params and severity were ignored
+        url = self.h._get_url(self.h.RULES_ACTIVATION_ENDPOINT)
+        mock_post.assert_called_with(url, data={'rule_key': None, 'profile_key': 'py-234454', 'reset': 'true'})
+        mock_post.reset_mock()
+
+        # Now post proper data, with
+        resp.status_code = 200
+        resp.json.return_value = {'result': 'ok'}
+        self.h.activate_rule('py:S1291', 'py-234454', format='^setUp|tearDown$')
+
+        # Check call, params and severity added
+        mock_post.assert_called_with(url, data={'rule_key': 'py:S1291', 'profile_key': 'py-234454', 'reset': 'false',
+                                                'severity': 'MINOR', 'params': 'format=^setUp|tearDown$'})
+
+    @mock.patch('sonarqube_api.api.requests.Session.post')
     def test_create_rule(self, mock_post):
         # Rule exists, error
         resp = mock.MagicMock(status_code=400)

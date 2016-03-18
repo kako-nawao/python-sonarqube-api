@@ -130,7 +130,7 @@ class SonarAPIHandler(object):
         if not reset:
             # Add params and severity if we're not resetting to defaults
             data.update({
-                'params': ';'.join('{}={}'.format(k, v) for k, v in params),
+                'params': ';'.join('{}={}'.format(k, v) for k, v in params.items()),
                 'severity': severity
             })
 
