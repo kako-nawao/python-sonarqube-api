@@ -10,13 +10,6 @@ from sonarqube_api.api import SonarAPIHandler
 from sonarqube_api.utils import utf_encode
 
 
-# HTML rule section template
-HTML_RULE_TEMPLATE = u'<h1 id="{}">{}</h1><dl><dt>Language</dt><dd>{}</dd>'\
-                     u'<dt>Key</dt><dd>{}</dd><dt>Severity</dt><dd>{}</dd>'\
-                     u'<dt>Debt</dt><dd>{}</dd><dt>Parameters</dt><dd>{}</dd>'\
-                     u'</dl><div>{}</div><hr>'
-
-
 parser = argparse.ArgumentParser(description='Export rules from a SonarQube server')
 
 # Connection arguments
@@ -47,6 +40,13 @@ parser.add_argument('--profile', dest='profile', type=str,
 parser.add_argument('--languages', dest='languages', type=str,
                     default='',
                     help='Language to filter the rules to export')
+
+
+# HTML rule section template
+HTML_RULE_TEMPLATE = u'<h1 id="{}">{}</h1><dl><dt>Language</dt><dd>{}</dd>'\
+                     u'<dt>Key</dt><dd>{}</dd><dt>Severity</dt><dd>{}</dd>'\
+                     u'<dt>Debt</dt><dd>{}</dd><dt>Parameters</dt><dd>{}</dd>'\
+                     u'</dl><div>{}</div><hr>'
 
 
 def main():

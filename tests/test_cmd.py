@@ -1,5 +1,6 @@
 __author__ = 'kako'
 
+from io import StringIO
 from unittest import TestCase
 
 try:
@@ -7,9 +8,7 @@ try:
 except ImportError:
     import mock
 
-from sonarqube_api.cmd import export_rules
-from sonarqube_api.cmd import migrate_rules
-from sonarqube_api.exceptions import ValidationError
+from sonarqube_api.cmd import activate_rules, export_rules, migrate_rules
 
 
 GET_RULES_DATA = [
@@ -130,3 +129,65 @@ class MigrateRulesTest(TestCase):
         stdout_mock.write.assert_called_once_with(
             "Complete rules migration: 1 created, 1 skipped (already existing) and 1 failed.\n"
         )
+
+
+class ActivateRulesTest(TestCase):
+
+    @mock.patch('sonarqube_api.cmd.activate_rules.open', create=True)
+    @mock.patch('sonarqube_api.cmd.activate_rules.sys.stdout')
+    @mock.patch('sonarqube_api.cmd.activate_rules.sys.stderr')
+    @mock.patch('sonarqube_api.cmd.export_rules.argparse.ArgumentParser.parse_args')
+    @mock.patch('sonarqube_api.api.requests.Session.post')
+    def test_main(self, post_mock, parse_mock, stderr_mock,
+                  stdout_mock, open_mock):
+        # Set call arguments
+        parse_mock.return_value = mock.MagicMock(
+            host='localhost', port='9000', user='pancho', password='primero',
+            profile='py-234345', filename='active-rules.csv'
+        )
+
+        # Mock file handlers
+        csv_file = StringIO(
+            # Headers
+            'key,reset,severity,xpath,message,format\n'
+            # Standard rules: only reset first three
+            'pylint:123,yes,,,,\n'
+            'pylint:234,TRUE,,,,\n'
+            'pylint:345,Y,,,,\n'
+            'pylint:346,,,,,\n'
+            # Customized rule: set severity and format
+            'S123,,major,,,^foo|bar$\n'
+            # Custom rule: set severity, xpath and message
+            'X123,no,BLOCKER,\lala,Do not use lala,\n'
+            # Error: incorrect severity
+            'X123,no,so-so,\lala,Do not use lala,\n'
+        )
+        open_mock.return_value = csv_file
+
+        # Set data to receive from server
+        post_mock.side_effect = [
+            # First fix rules OK
+            mock.MagicMock(status_code=200),
+            mock.MagicMock(status_code=200),
+            mock.MagicMock(status_code=200),
+            mock.MagicMock(status_code=200),
+            mock.MagicMock(status_code=200),
+            mock.MagicMock(status_code=200),
+            # Sixth rule wrong: bad severity
+            mock.MagicMock(status_code=400, json=mock.MagicMock(return_value={'errors': [{
+                    'msg': "Value of parameter 'severity' (SO-SO) "
+                           "must be one of: [INFO, MINOR, MAJOR, CRITICAL, BLOCKER]."
+            }]})),
+        ]
+
+        # Execute command
+        activate_rules.main()
+
+        # Check error calls
+        stderr_mock.write.assert_called_once_with(
+            "Failed to activate rule X123: Value of parameter 'severity' "
+            "(SO-SO) must be one of: [INFO, MINOR, MAJOR, CRITICAL, BLOCKER].\n"
+        )
+
+        # Check stdout write: 3 exported and 1 failed
+        stdout_mock.write.assert_called_once_with('Complete rules activation: 6 activated and 1 failed.\n')
