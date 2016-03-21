@@ -108,7 +108,7 @@ class SonarAPIHandler(object):
             msg = ', '.join(e['msg'] for e in res.json()['errors'])
             raise ValidationError(msg)
 
-    def activate_rule(self, key, profile_key, reset=False, severity='MINOR',
+    def activate_rule(self, key, profile_key, reset=False, severity=None,
                       **params):
         """
         Activate a rule for a given quality profile.
@@ -128,11 +128,15 @@ class SonarAPIHandler(object):
         }
 
         if not reset:
-            # Add params and severity if we're not resetting to defaults
-            data.update({
-                'params': ';'.join('{}={}'.format(k, v) for k, v in params.items()),
-                'severity': severity.upper()
-            })
+            # No reset, Add severity if given (if not default will be used?)
+            if severity:
+                data['severity'] = severity.upper()
+
+            # Add params if we have any
+            # Note: sort by key to allow checking easily
+            params = ';'.join('{}={}'.format(k, v) for k, v in sorted(params.items()) if v)
+            if params:
+                data['params'] = params
 
         # Make call (might raise exception) and return
         res = self._make_call('post', self.RULES_ACTIVATION_ENDPOINT, **data)

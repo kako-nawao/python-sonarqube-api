@@ -10,6 +10,12 @@ from sonarqube_api.api import SonarAPIHandler, ValidationError
 
 parser = argparse.ArgumentParser(description='Activate rules in SonarQube server.')
 
+# Rules arguments (required)
+parser.add_argument('profile_key', type=str,
+                    help='Key of the target profile to activate rules.')
+parser.add_argument('filename', type=str,
+                    help='File to use for source of the rules definitions.')
+
 # Server connection params
 parser.add_argument('--host', dest='host', type=str,
                     default='http://localhost',
@@ -23,12 +29,6 @@ parser.add_argument('--user', dest='user', type=str,
 parser.add_argument('--password', dest='password', type=str,
                     default=None,
                     help='Authentication password for source server')
-
-# Rules arguments
-parser.add_argument('--profile', dest='profile_key', type=str,
-                    help='Key of the target profile to activate rules.')
-parser.add_argument('--file', dest='filename', type=str,
-                    help='File to use for source of the rules definitions.')
 
 
 def main():
@@ -52,8 +52,9 @@ def main():
             for rule_def in reader:
                 key = rule_def.pop('key', None)
                 try:
-                    # Pop key, parse reset if required and attempt activation
+                    # Pop key, clean data and attempt activation
                     rule_def['reset'] = rule_def.get('reset', '').lower() in ('y', 'yes', 'true')
+                    rule_def = {k: v for k, v in rule_def.items() if v}
                     h.activate_rule(key, options.profile_key, **rule_def)
                     a += 1
 

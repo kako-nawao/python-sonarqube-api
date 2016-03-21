@@ -8,6 +8,7 @@ try:
 except ImportError:
     import mock
 
+from sonarqube_api.api import SonarAPIHandler
 from sonarqube_api.cmd import activate_rules, export_rules, migrate_rules
 
 
@@ -143,13 +144,13 @@ class ActivateRulesTest(TestCase):
         # Set call arguments
         parse_mock.return_value = mock.MagicMock(
             host='localhost', port='9000', user='pancho', password='primero',
-            profile='py-234345', filename='active-rules.csv'
+            profile_key='py-234345', filename='active-rules.csv'
         )
 
         # Mock file handlers
         csv_file = StringIO(
             # Headers
-            'key,reset,severity,xpath,message,format\n'
+            'key,reset,severity,xpathQuery,message,format\n'
             # Standard rules: only reset first three
             'pylint:123,yes,,,,\n'
             'pylint:234,TRUE,,,,\n'
@@ -182,6 +183,35 @@ class ActivateRulesTest(TestCase):
 
         # Execute command
         activate_rules.main()
+
+        # Check post calls
+        # Note: check by one to ease debugging
+        h = SonarAPIHandler(host='localhost', port='9000', user='pancho', password='primero')
+        url = h._get_url(h.RULES_ACTIVATION_ENDPOINT)
+        self.assertEqual(post_mock.mock_calls[0], mock.call(
+            url, data={'profile_key': 'py-234345', 'rule_key': 'pylint:123', 'reset': 'true'}
+        ))
+        self.assertEqual(post_mock.mock_calls[1], mock.call(
+            url, data={'profile_key': 'py-234345', 'rule_key': 'pylint:234', 'reset': 'true'}
+        ))
+        self.assertEqual(post_mock.mock_calls[2], mock.call(
+            url, data={'profile_key': 'py-234345', 'rule_key': 'pylint:345', 'reset': 'true'}
+        ))
+        self.assertEqual(post_mock.mock_calls[3], mock.call(
+            url, data={'profile_key': 'py-234345', 'rule_key': 'pylint:346', 'reset': 'false'}
+        ))
+        self.assertEqual(post_mock.mock_calls[4], mock.call(
+            url, data={'profile_key': 'py-234345', 'rule_key': 'S123', 'reset': 'false',
+                       'severity': 'MAJOR', 'params': 'format=^foo|bar$'}
+        ))
+        self.assertEqual(post_mock.mock_calls[5], mock.call(
+            url, data={'profile_key': 'py-234345', 'rule_key': 'X123', 'reset': 'false',
+                       'severity': 'BLOCKER', 'params': 'message=Do not use lala;xpathQuery=\\lala'}
+        ))
+        self.assertEqual(post_mock.mock_calls[6], mock.call(
+            url, data={'profile_key': 'py-234345', 'rule_key': 'X123', 'reset': 'false',
+                       'severity': 'SO-SO', 'params': 'message=Do not use lala;xpathQuery=\\lala'}
+        ))
 
         # Check error calls
         stderr_mock.write.assert_called_once_with(
