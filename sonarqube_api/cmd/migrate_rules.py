@@ -41,7 +41,8 @@ parser.add_argument('--target-password', dest='target_password', type=str,
 
 def main():
     """
-    Migrate custom rules from one server to another one.
+    Migrate custom rules from one server to another one using two
+    SonarAPIHandler instances.
     """
     options = parser.parse_args()
     sh = SonarAPIHandler(options.source_host, options.source_port,
