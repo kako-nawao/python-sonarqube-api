@@ -150,7 +150,7 @@ class ActivateRulesTest(TestCase):
         # Mock file handlers
         csv_file = StringIO(
             # Headers
-            'key,reset,severity,xpathQuery,message,format\n'
+            u'key,reset,severity,xpathQuery,message,format\n'
             # Standard rules: only reset first three
             'pylint:123,yes,,,,\n'
             'pylint:234,TRUE,,,,\n'

@@ -76,8 +76,8 @@ class SonarAPIHandlerTest(TestCase):
         self.h.activate_rule('py:S1291', 'py-234454', format='^setUp|tearDown$')
 
         # Check call, params and severity added
-        mock_post.assert_called_with(url, data={'rule_key': 'py:S1291', 'profile_key': 'py-234454', 'reset': 'false',
-                                                'severity': 'MINOR', 'params': 'format=^setUp|tearDown$'})
+        mock_post.assert_called_with(url, data={'rule_key': 'py:S1291', 'profile_key': 'py-234454',
+                                                'reset': 'false', 'params': 'format=^setUp|tearDown$'})
 
     @mock.patch('sonarqube_api.api.requests.Session.post')
     def test_create_rule(self, mock_post):
