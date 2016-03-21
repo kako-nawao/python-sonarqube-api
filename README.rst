@@ -63,6 +63,7 @@ The methods supported by the SonarAPIHandler are:
 * ``get_resources_debt``: yield projects with their technical debt by category
 * ``get_resources_metrics``: yield projects with some general metrics
 * ``get_resources_full_data``: yield projects with their general metrics and technical debt by category (merge of previous two methods)
+* ``validate_authentication``: validate authentication credentials
 
 Commands
 --------
@@ -94,6 +95,28 @@ For the complete set of export options run::
 
     export-sonarqube-rules -h
 
+Activate Rules
+~~~~~~~~~~~~~~
+
+The command ``activate-sonarqube-rules`` reads an input csv file and activates
+the rules on a SonarQube server for a quality profile, according to the
+definitions on the file.
+
+The command requires a profile key and a file name::
+
+    activate-sonarqube-rules py-test-18349 active-rules.csv
+
+As usual, you can customize all the server connection parameters, which you can
+view with the help command::
+
+    activate-sonarqube-rules -h
+
+The file can be very simple: the only required field in the file is *key* (for
+the rule key), but you can also define the *severity* and customize **any**
+parameter such as *xpathQuery*, *message*, *format*... anything at all. You
+can also use *reset* (which takes values *true*/*yes*) to force using defaults
+for all values--for which rule all other params will be ignored.
+
 Migrate Rules
 ~~~~~~~~~~~~~
 
@@ -113,3 +136,4 @@ As with the previous command, you can specify all the connection options
 For the complete set of export options run::
 
     migrate-sonarqube-rules -h
+
