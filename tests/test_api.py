@@ -41,13 +41,6 @@ class SonarAPIHandlerTest(TestCase):
         mock_get.return_value = resp
         self.assertRaises(StopIteration, next, self.h.get_metrics())
 
-        # Not authenticated, raises AuthError
-        e_msg = "Don't know how to redirect to http://correct.location.com:9000."
-        with self.assertRaisesRegexp(Exception, e_msg):
-            resp.status_code = 301
-            resp.url = 'http://correct.location.com:9000'
-            next(self.h.get_metrics())
-
         # Invalid data, raises ValidationError
         resp.status_code = 400
         resp.json.return_value = {'errors': [{'msg': 'invalid data for field'}]}
