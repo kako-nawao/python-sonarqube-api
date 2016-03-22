@@ -5,7 +5,7 @@ SonarQube server web service API.
 
 import requests
 
-from .exceptions import AuthError, ValidationError
+from .exceptions import ClientError, AuthError, ValidationError, ServerError
 
 
 class SonarAPIHandler(object):
@@ -97,16 +97,31 @@ class SonarAPIHandler(object):
         url = self._get_url(endpoint)
         res = call(url, data=data or {})
 
-        # Return res if res < 400, otherwise raise adequate exception
-        if res.status_code < 400:
+        # Analyse response status and return or raise exception
+        if res.status_code < 300:
+            # OK, return http response
             return res
 
-        elif res.status_code in (401, 403):
-            raise AuthError(res.reason)
+        elif res.status_code < 400:
+            # Redirect code, error
+            raise Exception("Don't know how to redirect to {}.".format(res.url))
 
         elif res.status_code == 400:
+            # Validation error
             msg = ', '.join(e['msg'] for e in res.json()['errors'])
             raise ValidationError(msg)
+
+        elif res.status_code in (401, 403):
+            # Auth error
+            raise AuthError(res.reason)
+
+        elif res.status_code < 500:
+            # Other 4xx, generic client error
+            raise ClientError(res.reason)
+
+        else:
+            # 5xx is server error
+            raise ServerError(res.reason)
 
     def activate_rule(self, key, profile_key, reset=False, severity=None,
                       **params):
