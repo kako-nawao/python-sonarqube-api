@@ -1,3 +1,9 @@
+# Branch definition: only build master and PRs
+branches:
+  only:
+    master
+
+# Build definition; language, deps, scripts
 language: python
 install:
   - pip install -r requirements/dev.txt
