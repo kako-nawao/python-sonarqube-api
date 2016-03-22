@@ -1,9 +1,18 @@
 __author__ = 'claudio.melendrez'
 
 
-class AuthError(Exception):
+class ClientError(Exception):
     pass
 
 
-class ValidationError(ValueError):
+class ServerError(Exception):
     pass
+
+
+class AuthError(ClientError):
+    pass
+
+
+class ValidationError(ClientError):
+    pass
+

@@ -8,7 +8,7 @@ except ImportError:
     import mock
 
 from sonarqube_api import SonarAPIHandler
-from sonarqube_api.exceptions import AuthError, ValidationError
+from sonarqube_api.exceptions import ClientError, AuthError, ValidationError, ServerError
 
 
 class SonarAPIHandlerTest(TestCase):
@@ -42,6 +42,18 @@ class SonarAPIHandlerTest(TestCase):
         self.assertRaises(StopIteration, next, self.h.get_metrics())
 
         # Not authenticated, raises AuthError
+        e_msg = "Don't know how to redirect to http://correct.location.com:9000."
+        with self.assertRaisesRegex(Exception, e_msg):
+            resp.status_code = 301
+            resp.url = 'http://correct.location.com:9000'
+            next(self.h.get_metrics())
+
+        # Invalid data, raises ValidationError
+        resp.status_code = 400
+        resp.json.return_value = {'errors': [{'msg': 'invalid data for field'}]}
+        self.assertRaises(ValidationError, next, self.h.get_metrics())
+
+        # Not authenticated, raises AuthError
         resp.status_code = 401
         resp.reason = 'Unauthorized'
         self.assertRaises(AuthError, next, self.h.get_metrics())
@@ -51,10 +63,15 @@ class SonarAPIHandlerTest(TestCase):
         resp.reason = 'Forbidden'
         self.assertRaises(AuthError, next, self.h.get_metrics())
 
-        # Invalid data, raises ValidationError
-        resp.status_code = 400
-        resp.json.return_value = {'errors': [{'msg': 'invalid data for field'}]}
-        self.assertRaises(ValidationError, next, self.h.get_metrics())
+        # Not found, generic client error
+        resp.status_code = 404
+        resp.reason = 'Not Found'
+        self.assertRaises(ClientError, next, self.h.get_metrics())
+
+        # Server error
+        resp.status_code = 500
+        resp.reason = 'Internal Server Error'
+        self.assertRaises(ServerError, next, self.h.get_metrics())
 
     @mock.patch('sonarqube_api.api.requests.Session.post')
     def test_activate_rule(self, mock_post):
