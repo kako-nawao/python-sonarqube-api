@@ -98,13 +98,10 @@ class SonarAPIHandler(object):
         res = call(url, data=data or {})
 
         # Analyse response status and return or raise exception
+        # Note: redirects are followed automatically by requests
         if res.status_code < 300:
             # OK, return http response
             return res
-
-        elif res.status_code < 400:
-            # Redirect code, error
-            raise Exception("Don't know how to redirect to {}.".format(res.url))
 
         elif res.status_code == 400:
             # Validation error
