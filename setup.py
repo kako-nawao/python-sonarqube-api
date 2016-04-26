@@ -21,7 +21,7 @@ setup(
     name='sonarqube_api',
 
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.2.2',
+    version='1.2.3',
 
     description='SonarQube API Handler',
     long_description=long_description,

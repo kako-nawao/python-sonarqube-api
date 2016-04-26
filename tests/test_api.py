@@ -229,7 +229,8 @@ class SonarAPIHandlerTest(TestCase):
 
         # Get debts for testability
         resources = list(self.h.get_resources_debt(
-            resource='wow:wtf', categories=['testability', 'maintainability']
+            resource='wow:wtf', categories=['testability', 'maintainability'],
+            include_trends=True
         ))
         self.assertEqual(resources, [
             {'key': 'wow:wtf', 'name': 'Wizardly Table Fetching', 'scope': 'PRJ',
@@ -243,7 +244,7 @@ class SonarAPIHandlerTest(TestCase):
         mock_call.assert_called_once_with(
             'get', self.h.RESOURCES_ENDPOINT,
             resource='wow:wtf', model='SQALE', metrics='sqale_index',
-            characteristics='TESTABILITY,MAINTAINABILITY'
+            characteristics='TESTABILITY,MAINTAINABILITY', includetrends='true'
         )
         mock_call.reset_mock()
 
