@@ -270,7 +270,8 @@ class SonarAPIHandler(object):
             for rule in res['rules']:
                 yield rule
 
-    def get_resources_debt(self, resource=None, categories=None):
+    def get_resources_debt(self, resource=None, categories=None,
+                           include_trends=False):
         """
         Yield first-level resources with debt by category (aka. characteristic).
 
@@ -285,6 +286,8 @@ class SonarAPIHandler(object):
         }
         if resource:
             params['resource'] = resource
+        if include_trends:
+            params['includetrends'] = 'true'
 
         # Get the results
         res = self._make_call('get', self.RESOURCES_ENDPOINT, **params).json()
