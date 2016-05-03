@@ -211,7 +211,7 @@ class SonarAPIHandlerTest(TestCase):
         mock_call.assert_called_once_with(
             'get', self.h.RESOURCES_ENDPOINT,
             resource='wow:lala', includetrends='true',
-            metrics=','.join(['coverage'] + list(self.h.NEW_METRICS))
+            metrics='coverage,new_coverage'
         )
 
     @mock.patch('sonarqube_api.api.SonarAPIHandler._make_call')
