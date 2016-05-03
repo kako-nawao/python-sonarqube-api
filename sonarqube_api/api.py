@@ -47,18 +47,6 @@ class SonarAPIHandler(object):
         'uncovered_conditions', 'coverage'
     )
 
-    # Differential metrics with their titles (not provided by api)
-    NEW_METRICS = (
-        # Violations
-        'new_violations', 'new_blocker_violations', 'new_critical_violations',
-        'new_major_violations', 'new_minor_violations',
-
-        # Coverage
-        'new_lines_to_cover', 'new_conditions_to_cover', 'new_uncovered_lines',
-        'new_uncovered_conditions', 'new_coverage'
-
-    )
-
     def __init__(self, host=None, port=None, user=None, password=None):
         """
         Set connection info and session, including auth (if user+password
@@ -307,13 +295,15 @@ class SonarAPIHandler(object):
         :return: generator that yields resource metrics data dicts
         """
         # Build parameters
-        params = {'metrics': ','.join(metrics or self.GENERAL_METRICS)}
+        params = {}
+        if not metrics:
+            metrics = self.GENERAL_METRICS
         if resource:
             params['resource'] = resource
         if include_trends:
             params['includetrends'] = 'true'
-            params['metrics'] = ','.join([params['metrics']] +
-                                         list(self.NEW_METRICS))
+            metrics.extend(['new_{}'.format(m) for m in metrics])
+        params['metrics'] = ','.join(metrics)
 
         # Make the call
         res = self._make_call('get', self.RESOURCES_ENDPOINT, **params).json()
@@ -340,7 +330,8 @@ class SonarAPIHandler(object):
 
         # Now merge the debt data using the key
         for prj in self.get_resources_debt(resource=resource,
-                                           categories=categories):
+                                           categories=categories,
+                                           include_trends=include_trends):
             prjs[prj['key']]['msr'].extend(prj['msr'])
 
         # Return only values (list-like object)
