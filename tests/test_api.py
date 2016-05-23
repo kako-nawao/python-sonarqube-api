@@ -200,7 +200,8 @@ class SonarAPIHandlerTest(TestCase):
              'msr': [{'key': 'coverage', 'val': 26.0, 'frmt_val': '26.0%'}]}
         ]
         resources = list(self.h.get_resources_metrics(
-            resource='wow:lala', metrics=['coverage'], include_trends=True
+            resource='wow:lala', metrics=['coverage'], include_trends=True,
+            include_modules=True
         ))
         self.assertEqual(resources, [
             {'name': 'lala', 'key': 'wow:lala', 'scope': 'PRJ',
@@ -211,7 +212,8 @@ class SonarAPIHandlerTest(TestCase):
         mock_call.assert_called_once_with(
             'get', self.h.RESOURCES_ENDPOINT,
             resource='wow:lala', includetrends='true',
-            metrics='coverage,new_coverage'
+            metrics='coverage,new_coverage',
+            qualifiers='TRK,BRC'
         )
 
     @mock.patch('sonarqube_api.api.SonarAPIHandler._make_call')
@@ -230,7 +232,7 @@ class SonarAPIHandlerTest(TestCase):
         # Get debts for testability
         resources = list(self.h.get_resources_debt(
             resource='wow:wtf', categories=['testability', 'maintainability'],
-            include_trends=True
+            include_trends=True, include_modules=True
         ))
         self.assertEqual(resources, [
             {'key': 'wow:wtf', 'name': 'Wizardly Table Fetching', 'scope': 'PRJ',
@@ -244,7 +246,8 @@ class SonarAPIHandlerTest(TestCase):
         mock_call.assert_called_once_with(
             'get', self.h.RESOURCES_ENDPOINT,
             resource='wow:wtf', model='SQALE', metrics='sqale_index',
-            characteristics='TESTABILITY,MAINTAINABILITY', includetrends='true'
+            characteristics='TESTABILITY,MAINTAINABILITY', includetrends='true',
+            qualifiers='TRK,BRC'
         )
         mock_call.reset_mock()
 
@@ -268,7 +271,8 @@ class SonarAPIHandlerTest(TestCase):
         # Make the call with one metric and two debt categories
         resources = list(self.h.get_resources_full_data(
             resource='wow:wtf', metrics=['coverage'],
-            categories=['testability', 'maintainability']
+            categories=['testability', 'maintainability'],
+            include_modules=True
         ))
 
         # Ensure proper merge of data and first name is kept
@@ -287,10 +291,11 @@ class SonarAPIHandlerTest(TestCase):
         self.assertEqual(mock_call.call_count, 2)
         mock_call.assert_any_call(
             'get', self.h.RESOURCES_ENDPOINT,
-            resource='wow:wtf', metrics='coverage'
+            resource='wow:wtf', metrics='coverage', qualifiers='TRK,BRC'
         )
         mock_call.assert_any_call(
             'get', self.h.RESOURCES_ENDPOINT,
             resource='wow:wtf', model='SQALE', metrics='sqale_index',
-            characteristics='TESTABILITY,MAINTAINABILITY'
+            characteristics='TESTABILITY,MAINTAINABILITY',
+            qualifiers='TRK,BRC'
         )
