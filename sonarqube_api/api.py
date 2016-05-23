@@ -2,6 +2,7 @@
 This module contains the SonarAPIHandler, used for communicating with the
 SonarQube server web service API.
 """
+import operator
 
 import requests
 
@@ -346,10 +347,13 @@ class SonarAPIHandler(object):
                 include_trends=include_trends,
                 include_modules=include_modules
         ):
-            prjs[prj['key']]['msr'].extend(prj['msr'])
+            if prj['key'] in prjs:
+                prjs[prj['key']]['msr'].extend(prj['msr'])
+            else:
+                prjs[prj['key']] = prj
 
-        # Return only values (list-like object)
-        for prj in prjs.values():
+        # Now yield all values
+        for _, prj in sorted(prjs.items(), key=operator.itemgetter(0)):
             yield prj
 
     def validate_authentication(self):
