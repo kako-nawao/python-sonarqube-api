@@ -259,12 +259,14 @@ class SonarAPIHandler(object):
                 yield rule
 
     def get_resources_debt(self, resource=None, categories=None,
-                           include_trends=False):
+                           include_trends=False, include_modules=False):
         """
         Yield first-level resources with debt by category (aka. characteristic).
 
         :param resource: key of the resource to select
         :param categories: iterable of debt characteristics by name
+        :param include_trends: include differential values for leak periods
+        :param include_modules: include modules data
         :return: generator that yields resource debt data dicts
         """
         # Build parameters
@@ -276,6 +278,8 @@ class SonarAPIHandler(object):
             params['resource'] = resource
         if include_trends:
             params['includetrends'] = 'true'
+        if include_modules:
+            params['qualifiers'] = 'TRK,BRC'
 
         # Get the results
         res = self._make_call('get', self.RESOURCES_ENDPOINT, **params).json()
@@ -285,13 +289,14 @@ class SonarAPIHandler(object):
             yield prj
 
     def get_resources_metrics(self, resource=None, metrics=None,
-                              include_trends=False):
+                              include_trends=False, include_modules=False):
         """
         Yield first-level resources with generic metrics.
 
         :param resource: key of the resource to select
         :param metrics: iterable of metrics to return by name
         :param include_trends: include differential values for leak periods
+        :param include_modules: include modules data
         :return: generator that yields resource metrics data dicts
         """
         # Build parameters
@@ -303,6 +308,8 @@ class SonarAPIHandler(object):
         if include_trends:
             params['includetrends'] = 'true'
             metrics.extend(['new_{}'.format(m) for m in metrics])
+        if include_modules:
+            params['qualifiers'] = 'TRK,BRC'
         params['metrics'] = ','.join(metrics)
 
         # Make the call
@@ -313,7 +320,8 @@ class SonarAPIHandler(object):
             yield prj
 
     def get_resources_full_data(self, resource=None, metrics=None,
-                                categories=None, include_trends=False):
+                                categories=None, include_trends=False,
+                                include_modules=False):
         """
         Yield first-level resources with merged generic and debt metrics.
 
@@ -321,17 +329,23 @@ class SonarAPIHandler(object):
         :param metrics: iterable of metrics to return by name
         :param categories: iterable of debt characteristics by name
         :param include_trends: include differential values for leak periods
+        :param include_modules: include modules data
         :return: generator that yields resource metrics and debt data dicts
         """
         # First make a dict with all resources
         prjs = {prj['key']: prj for prj in
-                self.get_resources_metrics(resource=resource, metrics=metrics,
-                                           include_trends=include_trends)}
+                self.get_resources_metrics(
+                    resource=resource, metrics=metrics,
+                    include_trends=include_trends,
+                    include_modules=include_modules
+                )}
 
         # Now merge the debt data using the key
-        for prj in self.get_resources_debt(resource=resource,
-                                           categories=categories,
-                                           include_trends=include_trends):
+        for prj in self.get_resources_debt(
+                resource=resource, categories=categories,
+                include_trends=include_trends,
+                include_modules=include_modules
+        ):
             prjs[prj['key']]['msr'].extend(prj['msr'])
 
         # Return only values (list-like object)
