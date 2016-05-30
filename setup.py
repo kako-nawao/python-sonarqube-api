@@ -21,7 +21,7 @@ setup(
     name='sonarqube_api',
 
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.2.6',
+    version='1.2.7',
 
     description='SonarQube API Handler',
     long_description=long_description,
@@ -66,4 +66,7 @@ setup(
             'migrate-sonarqube-rules=sonarqube_api.cmd.migrate_rules:main',
         ],
     },
+
+    # Test suite (required for Py2)
+    test_suite="tests",
 )

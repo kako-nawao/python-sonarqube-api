@@ -1,1 +1,2 @@
-__author__ = 'claudio.melendrez'
+from .test_api import *
+from .test_cmd import *
