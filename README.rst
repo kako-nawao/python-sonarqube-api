@@ -27,7 +27,7 @@ Install from PyPI::
     pip install sonarqube-api
 
 Compatibility
-~~~~~~~~~~~~~
+-------------
 
 This package is compatible Python versions 2.7, 3.4 and 3.5.
 Probably others, but those are the ones against which we build (by Travis CI).
