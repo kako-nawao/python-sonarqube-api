@@ -16,6 +16,23 @@ class SonarAPIHandlerTest(TestCase):
     def setUp(self):
         self.h = SonarAPIHandler(user='admin', password='admin')
 
+    def test_url_building(self):
+        test = SonarAPIHandler(host='http://localhost', port=9001,
+                               subdirectory='/testing')
+        self.assertEqual(
+            "http://localhost:9001/testing{}".format(test.RESOURCES_ENDPOINT),
+            test._get_url(test.RESOURCES_ENDPOINT))
+
+        test = SonarAPIHandler(host='http://localhost', port=9001)
+        self.assertEqual(
+            "http://localhost:9001{}".format(test.RESOURCES_ENDPOINT),
+            test._get_url(test.RESOURCES_ENDPOINT))
+
+        test = SonarAPIHandler(host='http://localhost')
+        self.assertEqual(
+            "http://localhost:9000{}".format(test.RESOURCES_ENDPOINT),
+            test._get_url(test.RESOURCES_ENDPOINT))
+
     @mock.patch('sonarqube_api.api.requests.Session.get')
     def test_validate_auth(self, mock_res):
         resp = mock.MagicMock(status_code=200)

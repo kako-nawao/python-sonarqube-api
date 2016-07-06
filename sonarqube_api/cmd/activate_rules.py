@@ -29,6 +29,9 @@ parser.add_argument('--user', dest='user', type=str,
 parser.add_argument('--password', dest='password', type=str,
                     default=None,
                     help='Authentication password for source server')
+parser.add_argument('--authtoken', dest='authtoken', type=str,
+                    default=None,
+                    help='Authentication token for source server')
 
 
 def main():
@@ -36,8 +39,9 @@ def main():
     Activate rules in a profile using a SonarAPIHandler instance.
     """
     options = parser.parse_args()
-    h = SonarAPIHandler(options.host, options.port,
-                        options.user, options.password)
+    h = SonarAPIHandler(host=options.host, port=options.port,
+                        user=options.user, password=options.password,
+                        token=options.authtoken)
 
     # Counters (total, created, skipped and failed)
     a, f = 0, 0

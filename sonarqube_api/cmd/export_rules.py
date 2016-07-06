@@ -25,6 +25,9 @@ parser.add_argument('--user', dest='user', type=str,
 parser.add_argument('--password', dest='password', type=str,
                     default=None,
                     help='Authentication password')
+parser.add_argument('--authtoken', dest='authtoken', type=str,
+                    default=None,
+                    help='Authentication token')
 
 # Output directory argument
 parser.add_argument('--output-dir', dest='output', type=str,
@@ -55,7 +58,9 @@ def main():
     SonarAPIHandler connected to the given host.
     """
     options = parser.parse_args()
-    h = SonarAPIHandler(options.host, options.port, options.user, options.password)
+    h = SonarAPIHandler(host=options.host, port=options.port,
+                        user=options.user, password=options.password,
+                        token=options.authtoken)
 
     # Determine output csv and html file names
     csv_fn = os.path.expanduser(os.path.join(options.output, 'rules.csv'))

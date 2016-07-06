@@ -16,6 +16,7 @@ class SonarAPIHandler(object):
     # Default host is local
     DEFAULT_HOST = 'http://localhost'
     DEFAULT_PORT = 9000
+    DEFAULT_SUBDIRECTORY = ''
 
     # Endpoint for resources and rules
     AUTH_VALIDATION_ENDPOINT = '/api/authentication/validate'
@@ -48,15 +49,22 @@ class SonarAPIHandler(object):
         'uncovered_conditions', 'coverage'
     )
 
-    def __init__(self, host=None, port=None, user=None, password=None):
+    def __init__(self, host=None, port=None, user=None, password=None,
+                 subdirectory=None, token=None):
         """
         Set connection info and session, including auth (if user+password
-        were provided).
+        and/or auth token were provided).
         """
         self._host = host or self.DEFAULT_HOST
         self._port = port or self.DEFAULT_PORT
+        self._subdirectory = subdirectory or self.DEFAULT_SUBDIRECTORY
         self._session = requests.Session()
-        if user and password:
+
+        # Prefer revocable authentication token over username/password if
+        # both are provided
+        if token:
+            self._session.auth = token, None
+        elif user and password:
             self._session.auth = user, password
 
     def _get_url(self, endpoint):
@@ -66,7 +74,7 @@ class SonarAPIHandler(object):
         :param endpoint: service endpoint as str
         :return: complete url (including host and port) as str
         """
-        return '{}:{}{}'.format(self._host, self._port, endpoint)
+        return '{}:{}{}{}'.format(self._host, self._port, self._subdirectory, endpoint)
 
     def _make_call(self, method, endpoint, **data):
         """
