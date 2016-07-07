@@ -16,7 +16,7 @@ class SonarAPIHandler(object):
     # Default host is local
     DEFAULT_HOST = 'http://localhost'
     DEFAULT_PORT = 9000
-    DEFAULT_SUBDIRECTORY = ''
+    DEFAULT_BASE_PATH = ''
 
     # Endpoint for resources and rules
     AUTH_VALIDATION_ENDPOINT = '/api/authentication/validate'
@@ -50,14 +50,14 @@ class SonarAPIHandler(object):
     )
 
     def __init__(self, host=None, port=None, user=None, password=None,
-                 subdirectory=None, token=None):
+                 base_path=None, token=None):
         """
         Set connection info and session, including auth (if user+password
         and/or auth token were provided).
         """
         self._host = host or self.DEFAULT_HOST
         self._port = port or self.DEFAULT_PORT
-        self._subdirectory = subdirectory or self.DEFAULT_SUBDIRECTORY
+        self._subdirectory = base_path or self.DEFAULT_BASE_PATH
         self._session = requests.Session()
 
         # Prefer revocable authentication token over username/password if
