@@ -63,7 +63,7 @@ class SonarAPIHandler(object):
         # Prefer revocable authentication token over username/password if
         # both are provided
         if token:
-            self._session.auth = token, None
+            self._session.auth = token, ''
         elif user and password:
             self._session.auth = user, password
 
