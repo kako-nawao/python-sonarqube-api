@@ -57,7 +57,7 @@ class SonarAPIHandler(object):
         """
         self._host = host or self.DEFAULT_HOST
         self._port = port or self.DEFAULT_PORT
-        self._subdirectory = base_path or self.DEFAULT_BASE_PATH
+        self._base_path = base_path or self.DEFAULT_BASE_PATH
         self._session = requests.Session()
 
         # Prefer revocable authentication token over username/password if
@@ -74,7 +74,7 @@ class SonarAPIHandler(object):
         :param endpoint: service endpoint as str
         :return: complete url (including host and port) as str
         """
-        return '{}:{}{}{}'.format(self._host, self._port, self._subdirectory, endpoint)
+        return '{}:{}{}{}'.format(self._host, self._port, self._base_path, endpoint)
 
     def _make_call(self, method, endpoint, **data):
         """
