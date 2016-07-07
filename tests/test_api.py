@@ -18,7 +18,7 @@ class SonarAPIHandlerTest(TestCase):
 
     def test_url_building(self):
         test = SonarAPIHandler(host='http://localhost', port=9001,
-                               subdirectory='/testing')
+                               base_path='/testing')
         self.assertEqual(
             "http://localhost:9001/testing{}".format(test.RESOURCES_ENDPOINT),
             test._get_url(test.RESOURCES_ENDPOINT))
