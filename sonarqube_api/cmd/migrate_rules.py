@@ -26,6 +26,9 @@ parser.add_argument('--source-password', dest='source_password', type=str,
 parser.add_argument('--source-authtoken', dest='source_authtoken', type=str,
                     default=None,
                     help='Authentication token for source server')
+parser.add_argument('--sourcebasepath', dest='sourcebasepath', type=str,
+                    default=None,
+                    help='The base-path of the source Sonar installation. Defaults to "/"')
 
 # Target connection arguments
 parser.add_argument('--target-host', dest='target_host', type=str,
@@ -43,6 +46,9 @@ parser.add_argument('--target-password', dest='target_password', type=str,
 parser.add_argument('--target-authtoken', dest='target-authtoken', type=str,
                     default=None,
                     help='Authentication token for target server')
+parser.add_argument('--targetbasepath', dest='targetbasepath', type=str,
+                    default=None,
+                    help='The base-path of the target Sonar installation. Defaults to "/"')
 
 
 def main():
@@ -53,10 +59,10 @@ def main():
     options = parser.parse_args()
     sh = SonarAPIHandler(host=options.source_host, port=options.source_port,
                          user=options.source_user, password=options.source_password,
-                         token=options.source_authtoken)
+                         token=options.source_authtoken, base_path=options.sourcebasepath)
     th = SonarAPIHandler(host=options.target_host, port=options.target_port,
                          user=options.target_user, password=options.target_password,
-                         token=options.target_token)
+                         token=options.target_token, base_path=targetbasepath)
 
     # Get the generator of source rules
     rules = sh.get_rules(active_only=True, custom_only=True)

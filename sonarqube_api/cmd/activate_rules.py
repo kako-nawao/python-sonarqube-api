@@ -32,6 +32,9 @@ parser.add_argument('--password', dest='password', type=str,
 parser.add_argument('--authtoken', dest='authtoken', type=str,
                     default=None,
                     help='Authentication token for source server')
+parser.add_argument('--basepath', dest='basepath', type=str,
+                    default=None,
+                    help='The base-path of the Sonar installation. Defaults to "/"')
 
 
 def main():
@@ -41,7 +44,7 @@ def main():
     options = parser.parse_args()
     h = SonarAPIHandler(host=options.host, port=options.port,
                         user=options.user, password=options.password,
-                        token=options.authtoken)
+                        token=options.authtoken, base_path=options.basepath)
 
     # Counters (total, created, skipped and failed)
     a, f = 0, 0
