@@ -62,7 +62,7 @@ def main():
                          token=options.source_authtoken, base_path=options.sourcebasepath)
     th = SonarAPIHandler(host=options.target_host, port=options.target_port,
                          user=options.target_user, password=options.target_password,
-                         token=options.target_token, base_path=targetbasepath)
+                         token=options.target_token, base_path=options.targetbasepath)
 
     # Get the generator of source rules
     rules = sh.get_rules(active_only=True, custom_only=True)
