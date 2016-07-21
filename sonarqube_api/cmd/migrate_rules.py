@@ -26,7 +26,7 @@ parser.add_argument('--source-password', dest='source_password', type=str,
 parser.add_argument('--source-authtoken', dest='source_authtoken', type=str,
                     default=None,
                     help='Authentication token for source server')
-parser.add_argument('--sourcebasepath', dest='sourcebasepath', type=str,
+parser.add_argument('--source-basepath', dest='source_basepath', type=str,
                     default=None,
                     help='The base-path of the source Sonar installation. Defaults to "/"')
 
@@ -43,10 +43,10 @@ parser.add_argument('--target-user', dest='target_user', type=str,
 parser.add_argument('--target-password', dest='target_password', type=str,
                     default=None,
                     help='Authentication password for target server')
-parser.add_argument('--target-authtoken', dest='target-authtoken', type=str,
+parser.add_argument('--target-authtoken', dest='target_authtoken', type=str,
                     default=None,
                     help='Authentication token for target server')
-parser.add_argument('--targetbasepath', dest='targetbasepath', type=str,
+parser.add_argument('--target-basepath', dest='target_basepath', type=str,
                     default=None,
                     help='The base-path of the target Sonar installation. Defaults to "/"')
 
@@ -59,10 +59,10 @@ def main():
     options = parser.parse_args()
     sh = SonarAPIHandler(host=options.source_host, port=options.source_port,
                          user=options.source_user, password=options.source_password,
-                         token=options.source_authtoken, base_path=options.sourcebasepath)
+                         token=options.source_authtoken, base_path=options.source_basepath)
     th = SonarAPIHandler(host=options.target_host, port=options.target_port,
                          user=options.target_user, password=options.target_password,
-                         token=options.target_token, base_path=options.targetbasepath)
+                         token=options.target_authtoken, base_path=options.target_basepath)
 
     # Get the generator of source rules
     rules = sh.get_rules(active_only=True, custom_only=True)
