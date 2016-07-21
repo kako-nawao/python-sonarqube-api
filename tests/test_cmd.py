@@ -144,7 +144,7 @@ class ActivateRulesTest(TestCase):
         # Set call arguments
         parse_mock.return_value = mock.MagicMock(
             host='localhost', port='9000', user='pancho', password='primero',
-            profile_key='py-234345', filename='active-rules.csv'
+            profile_key='py-234345', filename='active-rules.csv', basepath=None
         )
 
         # Mock file handlers
