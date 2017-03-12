@@ -2,7 +2,7 @@
 Python SonarQube API
 ====================
 
-.. image:: https://img.shields.io/pypi/l/sonarqube-api.svg
+.. image:: https://img.shields.io/github/license/kako-nawao/sonarqube-api.svg
     :target: http://www.opensource.org/licenses/MIT
 
 .. image:: https://img.shields.io/pypi/pyversions/sonarqube-api.svg
@@ -12,8 +12,8 @@ Python SonarQube API
 
 .. image:: https://img.shields.io/travis/kako-nawao/python-sonarqube-api.svg
     :target: https://travis-ci.org/kako-nawao/python-sonarqube-api
-.. image:: https://img.shields.io/coveralls/kako-nawao/python-sonarqube-api.svg
-    :target: https://coveralls.io/github/kako-nawao/python-sonarqube-api
+.. image:: https://img.shields.io/codecov/c/github/kako-nawao/python-sonarqube-api.svg
+    :target: https://codecov.io/gh/kako-nawao/python-sonarqube-api
 
 API Handler for SonarQube web service, providing basic authentication (which
 seems to be the only kind that SonarQube supports) and a few methods to fetch
@@ -29,7 +29,7 @@ Install from PyPI::
 Compatibility
 -------------
 
-This package is compatible Python versions 2.7, 3.4 and 3.5.
+This package is compatible Python versions 2.7, 3.4, 3.5 and 3.6.
 Probably others, but those are the ones against which we build (by Travis CI).
 
 

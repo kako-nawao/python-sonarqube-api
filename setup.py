@@ -3,13 +3,12 @@ See:
 https://packaging.python.org/en/latest/distributing.html
 https://github.com/pypa/sampleproject
 """
-__author__ = 'kako'
-
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
+
 
 here = path.abspath(path.dirname(__file__))
 
@@ -21,7 +20,7 @@ setup(
     name='sonarqube_api',
 
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.3.0',
+    version='1.3.1',
 
     description='SonarQube API Handler',
     long_description=long_description,
@@ -40,6 +39,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Software Development'
     ],
 
