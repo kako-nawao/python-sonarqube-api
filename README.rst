@@ -2,7 +2,7 @@
 Python SonarQube API
 ====================
 
-.. image:: https://img.shields.io/github/license/kako-nawao/sonarqube-api.svg
+.. image:: https://img.shields.io/github/license/kako-nawao/python-sonarqube-api.svg
     :target: http://www.opensource.org/licenses/MIT
 
 .. image:: https://img.shields.io/pypi/pyversions/sonarqube-api.svg
